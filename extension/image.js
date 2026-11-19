@@ -21,7 +21,56 @@ export function readFile(file, signal) {
   });
 }
 
-export async function readPageImage({ tabId, frameId, source, page }, signal) {
+function canvasToBase64(canvas, signal) {
+  const toBlob = (type, quality) => new Promise(resolve => canvas.toBlob(resolve, type, quality));
+  return (async () => {
+    try {
+      let blob = await toBlob("image/png");
+      if (!blob?.size || blob.size > MAX_IMAGE_BYTES) {
+        blob = await toBlob("image/jpeg", 0.92);
+      }
+      signal.throwIfAborted();
+      if (!blob?.size) throw new Error("image_read");
+      if (blob.size > MAX_IMAGE_BYTES) throw new Error("image_size");
+      return await readFile(blob, signal);
+    } finally {
+      canvas.width = 0;
+    }
+  })();
+}
+
+async function captureCroppedRegion(windowId, rect, signal) {
+  signal.throwIfAborted();
+  let dataUrl;
+  try {
+    dataUrl = await chrome.tabs.captureVisibleTab(windowId, { format: "png" });
+  } catch {
+    throw new Error("image_read");
+  }
+  signal.throwIfAborted();
+
+  const bitmap = await createImageBitmap(await (await fetch(dataUrl)).blob());
+  try {
+    signal.throwIfAborted();
+    const sx = Math.max(0, Math.round(rect.x * rect.dpr));
+    const sy = Math.max(0, Math.round(rect.y * rect.dpr));
+    const sw = Math.min(bitmap.width - sx, Math.round(rect.width * rect.dpr));
+    const sh = Math.min(bitmap.height - sy, Math.round(rect.height * rect.dpr));
+    if (sw <= 0 || sh <= 0) throw new Error("image_read");
+
+    const scale = Math.min(1, 4096 / Math.max(sw, sh));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(sw * scale));
+    canvas.height = Math.max(1, Math.round(sh * scale));
+    const context = canvas.getContext("2d");
+    context.drawImage(bitmap, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+    return await canvasToBase64(canvas, signal);
+  } finally {
+    bitmap.close();
+  }
+}
+
+export async function readPageImage({ tabId, windowId, frameId, source, page }, signal) {
   signal.throwIfAborted();
   let timeout;
   let abort;
@@ -38,6 +87,9 @@ export async function readPageImage({ tabId, frameId, source, page }, signal) {
     ]);
     signal.throwIfAborted();
     if (typeof response?.base64 === "string") return response.base64;
+    if (response?.code === "capture_visible" && response.rect && Number.isInteger(windowId)) {
+      return await captureCroppedRegion(windowId, response.rect, signal);
+    }
     throw new Error(response?.code ?? "image_read");
   } finally {
     clearTimeout(timeout);

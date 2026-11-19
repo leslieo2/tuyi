@@ -62,6 +62,7 @@ export function openFromImage(info, tab) {
         source,
         page: info.frameUrl || info.pageUrl,
         tabId: tab.id,
+        windowId: tab.windowId,
         frameId: info.frameId ?? 0
       };
   if (deliver(tab.windowId, message)) {

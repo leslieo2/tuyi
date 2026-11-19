@@ -10,10 +10,18 @@
     selection = undefined;
   }
 
+  function findImage(event) {
+    const fromPath = event.composedPath().find(node => node instanceof HTMLImageElement);
+    if (fromPath) return fromPath;
+    if (typeof event.clientX !== "number" || typeof event.clientY !== "number") return null;
+    return document.elementsFromPoint(event.clientX, event.clientY)
+      .find(node => node instanceof HTMLImageElement) ?? null;
+  }
+
   window.addEventListener("contextmenu", event => {
     if (!event.isTrusted) return;
     clearSelection();
-    const image = event.composedPath().find(node => node instanceof HTMLImageElement);
+    const image = findImage(event);
     if (!image?.complete || !image.currentSrc || !image.naturalWidth || !image.naturalHeight) return;
 
     selection = {
@@ -45,6 +53,39 @@
     reader.readAsDataURL(blob);
   }
 
+  function visibleRect(image) {
+    let rect = image.getBoundingClientRect();
+    let left = rect.left;
+    let top = rect.top;
+    let win = window;
+    try {
+      while (win !== win.top) {
+        const frame = win.frameElement;
+        if (!frame) return null;
+        const frameRect = frame.getBoundingClientRect();
+        left += frameRect.left;
+        top += frameRect.top;
+        win = win.parent;
+      }
+      const vw = win.innerWidth;
+      const vh = win.innerHeight;
+      const clampedLeft = Math.max(0, left);
+      const clampedTop = Math.max(0, top);
+      const clampedRight = Math.min(vw, left + rect.width);
+      const clampedBottom = Math.min(vh, top + rect.height);
+      if (clampedRight <= clampedLeft || clampedBottom <= clampedTop) return null;
+      return {
+        x: clampedLeft,
+        y: clampedTop,
+        width: clampedRight - clampedLeft,
+        height: clampedBottom - clampedTop,
+        dpr: win.devicePixelRatio || 1
+      };
+    } catch {
+      return null;
+    }
+  }
+
   function sendPixels(image, respond) {
     const width = image.naturalWidth;
     const height = image.naturalHeight;
@@ -64,6 +105,11 @@
       context.getImageData(0, 0, 1, 1);
     } catch {
       canvas.width = 0;
+      const rect = visibleRect(image);
+      if (rect) {
+        respond({ code: "capture_visible", rect });
+        return false;
+      }
       respond({ code: "image_read" });
       return false;
     }
