@@ -116,6 +116,23 @@ test("stopped loopback fixture (real connection failure)", async () => {
   assert.deepEqual(await ask(translate, { port: service.port }), error("network"));
 });
 
+test("skips cloud translation when source text is already in the target language", async () => {
+  const chinese = "今天天气真好，我们一起去公园散步吧。";
+  assert.deepEqual(await ask({
+    command: "translate", cloudConsent: 1, target: "zh-Hans", text: chinese
+  }), [
+    { v: 1, type: "delta", text: chinese },
+    { v: 1, type: "done" }
+  ]);
+  const english = "The quick brown fox jumps over the lazy dog.";
+  assert.deepEqual(await ask({
+    command: "translate", cloudConsent: 1, target: "en-US", text: english
+  }), [
+    { v: 1, type: "delta", text: english },
+    { v: 1, type: "done" }
+  ]);
+});
+
 test("loopback SSE, retry after HTTP error, JSON, no redirects and interrupted stream", async () => {
   let trial = 0;
   const requests = [];

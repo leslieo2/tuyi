@@ -1,4 +1,5 @@
 import Foundation
+import NaturalLanguage
 
 private let deepSeekEndpoint = URL(string: "https://api.deepseek.com/chat/completions")!
 
@@ -52,11 +53,38 @@ private func checkedHTTP(_ response: URLResponse) throws -> HTTPURLResponse {
     }
 }
 
+private func isAlreadyTargetLanguage(_ text: String, target: String) -> Bool {
+    guard text.unicodeScalars.filter({ !CharacterSet.whitespacesAndNewlines.contains($0) }).count >= 6 else {
+        return false
+    }
+    let recognizer = NLLanguageRecognizer()
+    recognizer.processString(text)
+    let hypotheses = recognizer.languageHypotheses(withMaximum: 2)
+    guard let (language, confidence) = hypotheses.max(by: { $0.value < $1.value }),
+          language != .undetermined, confidence >= 0.90 else {
+        return false
+    }
+    let detected = language.rawValue
+    if detected.caseInsensitiveCompare(target) == .orderedSame { return true }
+    let detectedCode = Locale(identifier: detected).language.languageCode?.identifier
+    let targetCode = Locale(identifier: target).language.languageCode?.identifier
+    guard let detectedCode, let targetCode, detectedCode == targetCode else { return false }
+    // Keep zh-Hans <-> zh-Hant translation active when scripts differ.
+    return detectedCode != "zh"
+}
+
 func translate(_ input: Request, onDelta: (String) throws -> Void) async throws {
     guard let text = input.text, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
           text.utf8.count <= Limits.sourceBytes,
           let target = input.target, target.utf8.count <= 63,
           matches(target, #"\A[A-Za-z]{2,8}(?:-[A-Za-z0-9]{1,8})*\z"#) else { throw HostError("invalid_request") }
+
+    guard input.cloudConsent == 1 else { throw HostError("cloud_consent") }
+
+    if isAlreadyTargetLanguage(text, target: target) {
+        try onDelta(text)
+        return
+    }
 
     let configuration = URLSessionConfiguration.ephemeral
     configuration.httpShouldSetCookies = false
@@ -65,8 +93,6 @@ func translate(_ input: Request, onDelta: (String) throws -> Void) async throws 
     configuration.urlCredentialStorage = nil
     configuration.timeoutIntervalForRequest = 35
     configuration.timeoutIntervalForResource = 120
-
-    guard input.cloudConsent == 1 else { throw HostError("cloud_consent") }
 
     let endpoint: URL
     let key: String
