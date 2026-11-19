@@ -1,31 +1,31 @@
-# 产品规格
+# Product Specification
 
-## 意图
+## Intent
 
-在 macOS 的 Chrome 里，用户看到一张含外语文字的图片时，可以对它点一次「翻译图片中的内容」，在侧栏读到原文和所选语言的译文。网页图片无法直接导出像素时，也可通过当前可见区域或手边的图片、拖拽与截图得到同样的结果。
+In Google Chrome on macOS, when a user sees an image containing foreign-language text, they can right-click it once to translate its content and read both the recognized source text and the translation in the Side Panel. When a webpage image's pixels cannot be exported directly, the extension captures the visible area or lets the user upload, drag and drop, or paste an image or screenshot for the same result.
 
-## 用户操作与验收
+## User Flows & Acceptance Criteria
 
-| 场景 | 应看到的行为 |
+| Scenario | Expected Behavior |
 | --- | --- |
-| 右键网页图片 | 菜单显示「翻译图片中的内容」（英文界面为「Translate Text in Image」）。选择后打开侧栏，以右键时实际显示的图片内容启动任务。同一网址随后返回的内容不能替代此次选择。默认识别并翻译，侧栏显示原文和译文。 |
-| 上传、拖拽或粘贴图片 | 先显示识别出的原文。启用翻译时，用户可以点击「翻译识别文字」。从剪贴板按钮或 `⌘V` 粘贴的截图采用同样的流程。 |
-| 原文已是目标语言 | 识别出的文字若已明确属于所选目标语言，直接返回结果而不发起外部翻译请求。 |
-| 选择「仅识别」 | 之后启动的任务只在本机提取文字。设置页收起目标语言、翻译服务和密钥配置。侧栏收起翻译按钮和空白译文区域。 |
-| 已保存的处理方式无法识别 | 任务只提取原文，设置页和侧栏提示重新选择处理方式。 |
-| 设置语言与界面 | 默认自动检测识别语言、以简体中文为翻译目标、界面语言跟随浏览器。用户可选择常用目标语言或自定义语言代码，也可切换界面语言（简体中文 / English）。模式与语言在每项任务开始时读取，保存的新设置用于后续操作。 |
-| 配置服务与密钥 | 用户可在设置页配置兼容的翻译服务地址、模型与密钥。密钥输入被遮蔽，保存后清空，页面只显示配置状态；无需认证的本机服务可不配置密钥。缺少密钥时，原文仍可读取，侧栏提示去设置，保存后可直接翻译已有原文。 |
-| 读取失败或图片无文字 | 无法读取时提供上传、拖拽、粘贴或框选截图的替代路径（若重载扩展后页面未刷新，提示刷新后重试）。空白或无可识别文字时显示结果状态。两种情况均在识别阶段结束。 |
-| 翻译进行中或失败 | 显示进度，按收到的顺序展示译文。错误信息说明适用的下一步。原文和已收到的译文片段可复制。用户可以取消、重试或清除。 |
-| 连续操作 | 新任务替换侧栏中的旧任务。取消、清除或离开侧栏后，旧任务的响应无法再更新界面。同一会话内重复识别或右键同一图片可命中会话缓存；手动点击翻译按钮总是发起新翻译。 |
+| Right-click webpage image | The context menu displays **Translate Text in Image** (or **翻译图片中的内容** in Simplified Chinese). Selecting it opens the Side Panel and starts a job using the image pixels displayed at the time of the right-click—subsequent responses from the same URL must not replace that selection. By default, it recognizes text and translates it, displaying both Original and Translation in the Side Panel. |
+| Upload, drag & drop, or paste image | Displays the recognized source text first. When translation is enabled, the user can click **Translate Text** to start translation. Images pasted via the Paste button, `⌘V`, or dragged onto the panel follow the same flow. |
+| Source text already matches target language | When the recognized text is already confidently in the selected target language, the result is returned locally without sending an external translation request. |
+| Select **OCR Only** | Subsequent tasks extract text locally on-device only. Settings hides target language, translation service, and API key fields; the Side Panel hides the Translate button and empty translation box. |
+| Unrecognized persisted mode | Tasks fall back to OCR-only locally, and both Settings and the Side Panel prompt the user to re-select and save a valid mode. |
+| Language & UI settings | Defaults to auto-detecting recognition language, Simplified Chinese (`zh-Hans`) as the target language, and following the browser's interface language. Users can pick from preset target languages or enter a custom language code, choose device-supported OCR languages, and switch the UI language (`en` / `zh_CN`). Mode and languages are read at the start of each job. |
+| Service & API key setup | Users can configure a translation service URL, model name, and masked API key in Settings. The key input clears after saving and only configuration status is shown; unauthenticated local services do not require a key. When a key is required but missing, OCR still works and the Side Panel directs the user to Settings; once saved, existing recognized text can be translated directly. |
+| Read failure or blank image | When page pixels cannot be read, error copy guides the user to upload, drop, paste, or refresh the tab if the extension was just reloaded. Blank images or images with no text show an empty status. Both cases stop after the recognition stage. |
+| Translation streaming or failure | Progress is shown and translated chunks appear in arrival order. Errors explain the appropriate next step. Both original text and partial/complete translations can be copied. Users can cancel, retry, or clear. |
+| Sequential actions | A new task replaces any active task in the Side Panel. After cancelling, clearing, or closing the Side Panel, responses from prior tasks can no longer update the UI. Retrying after an error reuses the existing recognized text. Repeating the same image or right-click translation in a browser session hits the session cache; clicking **Translate Text** manually always fetches a fresh translation. |
 
-## 数据约束
+## Data Constraints
 
-- 图片识别与语言检测在本机完成。使用翻译功能时，所配置的翻译服务仅收到识别出的文字、目标语言和翻译指令。设置页说明发送行为。
-- 启用翻译时，用户选中右键菜单项或点击侧栏的翻译按钮才会发送文字。范围限于这次选择的图片或侧栏里的原文。
-- 图片、原文、译文与会话缓存仅临时保存在内存或浏览器会话中，不写入持久化磁盘。持久化内容限于用户偏好和系统安全存储中的密钥。
-- 图片读取遵守浏览器的站点访问和跨域限制，不重新请求图片网址。取消会停止本地任务并关闭仍在进行的请求；服务已经收到的文字无法通过取消收回。
+- Image recognition and same-language detection run locally on macOS. When translation runs, only the recognized text, target language, and translation instruction are sent to the configured translation service. Settings explains this behavior.
+- When translation is enabled, text is sent only when the user selects the image context menu item or clicks the Side Panel's **Translate Text** button, scoped strictly to that image or the current text in the panel.
+- Images, recognized text, translations, and session cache entries live only in memory or browser session storage (`chrome.storage.session`) and are never written to disk. Persistent storage is limited to user preferences and the API key in system secure storage.
+- Image reading respects Chrome's site-access and cross-origin rules and never re-fetches image URLs. Cancelling aborts the local task and closes any in-flight HTTP request (text already received by a remote server cannot be recalled).
 
-## 当前范围
+## Scope
 
-产品交付物是侧栏中的纯文本原文和译文。识别质量受字号、清晰度、语言与排版影响。复杂版面的阅读顺序以实际识别结果为准。输入格式和资源限制见技术文档。
+The product output is plain-text Original and Translation in the Side Panel. OCR quality depends on font size, image clarity, language, and layout; reading order for complex layouts follows Apple Vision's output. Input formats and resource limits are documented in [IMPLEMENTATION.md](IMPLEMENTATION.md).

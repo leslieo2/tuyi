@@ -1,4 +1,4 @@
-# 图译 · Image Translator
+# Image Translator
 
 A privacy-first Chrome extension for **macOS** that recognizes text inside images locally on your Mac and translates it in Chrome's Side Panel.
 
@@ -7,12 +7,12 @@ A privacy-first Chrome extension for **macOS** that recognizes text inside image
 
 ## Features
 
-- **Right-click any webpage image**: Select **「翻译图片中的内容」** / **Translate Text in Image** to extract text locally and stream the translation into the Side Panel.
+- **Right-click any webpage image**: Select **Translate Text in Image** to extract text locally and stream the translation into the Side Panel.
 - **Upload, drag & drop, or paste screenshots**: Drop an image onto the panel, pick a file, click **Paste Image**, or paste a macOS screenshot (`⌃⇧⌘4` + `⌘V`).
 - **OCR-only mode**: Extract text completely offline without sending anything off your Mac.
 - **Smart same-language detection**: Automatically skips external translation when the recognized text already matches your target language.
 - **Flexible translation service**: Works out of the box with DeepSeek, and supports any OpenAI-compatible service (OpenAI, OpenRouter, or local servers like Ollama / LM Studio).
-- **19+ target languages & bilingual UI**: Choose from 19 preset languages or enter any language code. Interface available in **English** and **简体中文**.
+- **19+ target languages & bilingual UI**: Choose from 19 preset languages or enter any language code. Interface available in **English** and **Simplified Chinese**.
 
 ## Installation (macOS)
 
@@ -27,15 +27,15 @@ A privacy-first Chrome extension for **macOS** that recognizes text inside image
    - Open `chrome://extensions` and turn on **Developer mode** (top right).
    - Click **Load unpacked** and select the **`extension`** folder inside the unzipped directory.
 
-4. *(Optional, for translation)* Click the extension icon in Chrome's toolbar → **Settings / 设置**, choose your translation service/model, and save your API key.
+4. *(Optional, for translation)* Click the extension icon in Chrome's toolbar → **Settings**, choose your translation service/model, and save your API key.
 
 > **Tip:** When updating to a new release, re-run `./scripts/install.sh`, click **Reload** on the extension card in `chrome://extensions`, and refresh any open tabs. If macOS asks for Keychain permission after updating the native helper, enter your login password and choose **Always Allow**.
 
 ## How to Use
 
-- **Webpage images**: Right-click an image and choose **「翻译图片中的内容」** / **Translate Text in Image**.
+- **Webpage images**: Right-click an image and choose **Translate Text in Image**.
 - **Local images or screenshots**: Open the Side Panel from Chrome's toolbar, then drag & drop an image, click **Upload Image**, or press `⌃⇧⌘4` to capture a screen region and paste (`⌘V`) into the panel. Click **Translate Text** when ready.
-- **OCR only**: Open **Settings / 设置** and switch **Mode** to **OCR Only / 仅识别**.
+- **OCR only**: Open **Settings** and switch **Mode** to **OCR Only**.
 
 ## Privacy
 

@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for your interest in contributing to **图译 · Image Translator**!
+Thanks for your interest in contributing to **Image Translator**!
 
 ## Environment
 
