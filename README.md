@@ -1,34 +1,97 @@
-# 本地图片识别翻译
+# 图译 · Image Translator
 
-在 macOS 的 Chrome 中右键图片，选择 **翻译图片中的内容**。在侧栏阅读原文和译文，也可以上传图片或粘贴截图。
+A privacy-first Chrome extension for **macOS** that performs **on-device OCR** using Apple's `Vision` framework and optional streaming translation via **DeepSeek**, showing the recognized text and translation in Chrome's Side Panel.
 
-## 安装与使用
+> **macOS Only**
+> This project **only supports macOS** (it does **not** work on Windows or Linux). Its native helper binary relies on Apple system frameworks—`Vision` (OCR), `ImageIO` (image decoding), `NaturalLanguage` (language detection), and `Security` (macOS Keychain).
 
-需要 macOS 13 或更新版本、Chrome 123 或更新版本，以及 Xcode Command Line Tools。若缺少编译工具，先运行 `xcode-select --install`。
+## Requirements
 
-1. 安装本地组件。
+| Requirement | Minimum Version | Notes |
+| --- | --- | --- |
+| **OS** | **macOS 13.0 (Ventura)** or newer | Required for `MACOSX_DEPLOYMENT_TARGET=13.0` and Apple Vision APIs |
+| **Browser** | **Google Chrome 123** or newer | Required for MV3 Side Panel and Native Messaging |
+| **Build Tools** | **Xcode Command Line Tools** | Run `xcode-select --install` if `swiftc` is missing |
+| **Node.js** *(tests only)* | **Node.js 20+** | Only needed if you want to run the test suite |
+
+## Features
+
+- **Right-click web images**: Select **「翻译图片中的内容」** to capture the displayed pixels, run local OCR, and stream the translation into the Side Panel. Includes an `activeTab` visible-tab crop fallback for cross-origin images without re-fetching the image URL.
+- **Upload, drag-and-drop, or paste screenshots**: Drop an image, pick a file, or paste a macOS region screenshot (`⌃⇧⌘4`) directly into the Side Panel.
+- **On-device OCR & OCR-only mode**: Text recognition runs locally on your Mac via Apple `Vision`. You can switch to **OCR-only (「仅识别」)** mode at any time so nothing leaves your device.
+- **Smart same-language skip**: Uses Apple's `NaturalLanguage` (`NLLanguageRecognizer`) locally to avoid unnecessary API calls when the recognized text already matches your target language (while keeping `zh-Hans` ↔ `zh-Hant` active).
+- **Session-only LRU cache**: Caches OCR results, translations, and supported Vision languages in memory / `chrome.storage.session` only—never persisted to disk.
+- **System Keychain storage**: Your DeepSeek API key is stored in macOS Keychain (`Local Image Translator — DeepSeek (manual)`), never in Chrome extension storage.
+
+## Installation
+
+1. **Clone the repository and install the native host:**
 
    ```sh
-   cd ~/WebstormProjects/local-image-translator
+   git clone https://github.com/leslieo2/local-image-translator.git
+   cd local-image-translator
    ./scripts/install.sh
    ```
 
-2. 在 `chrome://extensions` 打开 **开发者模式**，点击 **加载已解压的扩展程序**，选择项目的 `extension` 目录。更新时，点击扩展卡片上的 **重新加载**，再刷新要翻译图片的网页。
-3. 点击扩展按钮打开侧栏，再点 **设置**。首次翻译前，在 **DeepSeek** 区域填入自己的 API 密钥并保存（也可在终端运行 `./scripts/set-deepseek-key.sh` 手动录入）。默认翻译为简体中文，默认自动检测识别语言。
-4. 右键网页图片，选择 **翻译图片中的内容**。使用翻译时，识别出的文字会发送给 DeepSeek。只需原文时，可把处理方式设为 **仅识别**。
-5. 网页图片读取失败时，可以上传、拖拽图片到侧栏，或点 **粘贴图片**／按 ⌘V。用 ⌃⇧⌘4 框选截图后也能直接粘贴。识别结束后，点 **翻译识别文字** 可发起翻译。
+   This compiles `native/*.swift` into `~/Library/Application Support/Local Image Translator/image-translator-host` and registers the Chrome Native Messaging manifest under `~/Library/Application Support/Google/Chrome/NativeMessagingHosts/`.
 
-> 重新编译本地组件会改变二进制签名，macOS 可能会再次弹出钥匙串访问授权提示。
+2. **Load the unpacked extension in Chrome:**
+   - Open `chrome://extensions` and enable **Developer mode**.
+   - Click **Load unpacked** and select the [`extension/`](extension) directory from this repository.
+   - Whenever you update the extension, click **Reload** on the extension card and **refresh any open tabs**.
 
-## 网站访问
+3. **Configure your DeepSeek API key (for translation mode):**
+   - Click the extension icon to open the Side Panel, then open **设置** (Options) and enter your DeepSeek API key.
+   - Or store it from the terminal:
 
-Chrome 的右键菜单只提供图片网址。扩展需要在 HTTP(S) 网页监听真实的图片右键事件，以读取当时显示的图片。图片临时留在本机，翻译时只向 DeepSeek 发送识别文字和翻译所需参数。可以在 Chrome 扩展详情中将站点访问限制在指定网站。未授权站点和禁止读取跨域像素的图片可用上传、粘贴或截图。
+     ```sh
+     ./scripts/set-deepseek-key.sh
+     ```
 
-## 项目文档
+   > **Note on rebuilding:** Recompiling `image-translator-host` changes its ad-hoc code signature, so macOS may prompt once for Keychain permission (**Always Allow**) after a native rebuild.
 
-- [产品规格](SPEC.md) 描述用户意图、可验收行为和数据约束。
-- [技术规格与实现](IMPLEMENTATION.md) 记录技术选型、模块职责、权限、边界及测试方式。
+## Site Access & Privacy
 
-## 卸载
+- **Local OCR**: Images are decoded and recognized locally on macOS and are never uploaded.
+- **Translation**: When translation is enabled, only the recognized text, target language tag, and translation instructions are sent to `https://api.deepseek.com/chat/completions`.
+- **No URL re-fetching**: Right-click reads only the already-rendered pixels from the active tab. You can restrict site access anytime in Chrome's extension details page and still use upload, drag-and-drop, or screenshot paste (`⌃⇧⌘4`).
 
-在 `chrome://extensions` 移除扩展，再在项目目录运行 `./scripts/uninstall.sh`。如需一并清理本项目的 Keychain 密钥，使用 `./scripts/uninstall.sh --delete-key`。
+## Project Structure
+
+- [`extension/`](extension) — Chrome MV3 extension (service worker, content script, Side Panel, Options UI, session cache)
+- [`native/`](native) — Swift Native Messaging host (`Vision` OCR, `NaturalLanguage` detection, `Security` Keychain, `URLSession` streaming)
+- [`scripts/`](scripts) — Build, install, Keychain CLI helper, test, and uninstall scripts
+- [`tests/`](tests) — Node unit tests, native host integration tests, and isolated Chrome E2E tests
+- [`SPEC.md`](SPEC.md) — Product specification (Chinese)
+- [`IMPLEMENTATION.md`](IMPLEMENTATION.md) — Technical architecture and constraints (Chinese)
+
+## Development & Testing
+
+```sh
+# Fast JS unit tests (config, protocol, session cache, extension ID check)
+npm test
+
+# Swift native host + Vision OCR + Keychain + loopback translation tests
+npm run test:native
+
+# Isolated headless Chrome E2E tests
+npm run test:chrome
+
+# Visible Chrome real context-menu E2E test (requires macOS Accessibility permission)
+npm run test:chrome-menu
+```
+
+## Uninstall
+
+1. Remove the extension from `chrome://extensions`.
+2. Run the uninstall script:
+
+   ```sh
+   ./scripts/uninstall.sh
+   # Or also remove the saved DeepSeek API key from macOS Keychain:
+   ./scripts/uninstall.sh --delete-key
+   ```
+
+## License
+
+[MIT](LICENSE)

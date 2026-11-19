@@ -1,4 +1,17 @@
+# macOS
 .DS_Store
-.build/
+.AppleDouble
+.LSOverride
 
+# Build & Dependencies
+.build/
+DerivedData/
+node_modules/
+npm-debug.log*
+
+# Editors & IDEs
 .idea/
+.vscode/
+*.swp
+*.swo
+*.xcuserstate
