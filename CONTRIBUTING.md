@@ -46,6 +46,17 @@ npm run test:chrome
 npm run test:chrome-menu
 ```
 
+## Releases & Commit Convention
+
+This repository uses [semantic-release](https://github.com/semantic-release/semantic-release) with [Conventional Commits](https://www.conventionalcommits.org/) on `master` (`.github/workflows/release.yml` and `.releaserc.json`):
+
+- `fix: ...` → patch release (`1.0.x`)
+- `feat: ...` → minor release (`1.x.0`)
+- `BREAKING CHANGE:` / `feat!: ...` → major release (`x.0.0`)
+- `docs:`, `chore:`, `test:`, `refactor:` → no new release
+
+On qualifying commits to `master`, CI updates `CHANGELOG.md`, `package.json`, and `extension/manifest.json`, builds the universal macOS zip via `scripts/package.sh`, and publishes a GitHub Release.
+
 ## Guidelines
 
 - Keep `extension/` dependency-free (no external npm runtime packages) and preserve restrictive MV3 permissions (`SPEC.md` / `IMPLEMENTATION.md`).
