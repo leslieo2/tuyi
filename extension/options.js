@@ -6,6 +6,7 @@ import { nativeRequest } from "./native-client.js";
 const byId = id => document.getElementById(id);
 const mode = byId("mode");
 const target = byId("target");
+const targetCustom = byId("target-custom");
 const apiBaseUrl = byId("api-base-url");
 const model = byId("model");
 const ocrLanguage = byId("ocrLanguage");
@@ -15,8 +16,20 @@ const result = byId("status");
 const keyInput = byId("api-key");
 const saveKey = byId("save-key");
 const keyStatus = byId("key-status");
+const TARGET_PRESETS = [
+  "zh-Hans", "zh-Hant", "en", "ja", "ko", "fr", "de", "es",
+  "pt", "ru", "it", "ar", "vi", "th", "id", "nl", "pl", "tr", "hi"
+];
 let settings;
 let loadedLanguages;
+
+function syncCustomTarget() {
+  const translate = mode.value === "translate";
+  const isCustom = target.value === "__custom__";
+  targetCustom.hidden = !isCustom;
+  targetCustom.disabled = !translate || !isCustom;
+  targetCustom.required = translate && isCustom;
+}
 
 function refreshMode() {
   const translate = mode.value === "translate";
@@ -25,6 +38,21 @@ function refreshMode() {
   model.disabled = !translate;
   byId("target-fields").hidden = !translate;
   byId("translation-key").hidden = !translate;
+  syncCustomTarget();
+}
+
+function renderTargetOptions(chosen) {
+  const display = new Intl.DisplayNames([displayLocaleTag()], { type: "language" });
+  const options = TARGET_PRESETS.map(code => new Option(`${display.of(code)} (${code})`, code));
+  options.push(new Option(t("targetCustomOption"), "__custom__"));
+  target.replaceChildren(...options);
+  if (TARGET_PRESETS.includes(chosen)) {
+    target.value = chosen;
+  } else {
+    target.value = "__custom__";
+    targetCustom.value = chosen ?? "";
+  }
+  syncCustomTarget();
 }
 
 function showKeyStatus(message, state) {
@@ -82,7 +110,12 @@ keyInput.onkeydown = event => {
 };
 
 mode.onchange = refreshMode;
-target.oninput = () => target.setCustomValidity("");
+target.onchange = () => {
+  targetCustom.setCustomValidity("");
+  syncCustomTarget();
+  if (!targetCustom.hidden) targetCustom.focus();
+};
+targetCustom.oninput = () => targetCustom.setCustomValidity("");
 apiBaseUrl.oninput = () => apiBaseUrl.setCustomValidity("");
 model.oninput = () => model.setCustomValidity("");
 
@@ -92,10 +125,11 @@ byId("settings-form").onsubmit = async event => {
   let normalizedUrl = settings.apiBaseUrl;
   let normalizedModel = settings.model;
   if (!target.disabled) {
-    canonical = targetLanguage(target.value);
+    const rawTarget = target.value === "__custom__" ? targetCustom.value : target.value;
+    canonical = targetLanguage(rawTarget);
     if (!canonical) {
-      target.setCustomValidity(t("targetInvalid"));
-      target.reportValidity();
+      targetCustom.setCustomValidity(t("targetInvalid"));
+      targetCustom.reportValidity();
       return;
     }
     normalizedUrl = normalizeApiBaseUrl(apiBaseUrl.value);
@@ -124,13 +158,14 @@ byId("settings-form").onsubmit = async event => {
     await chrome.storage.local.set(changes);
     const uiChanged = settings.uiLanguage !== changes.uiLanguage;
     Object.assign(settings, changes);
-    target.value = canonical;
+    renderTargetOptions(canonical);
     apiBaseUrl.value = normalizedUrl;
     model.value = normalizedModel;
     void chrome.storage.local.remove("provider").catch(() => {});
     if (uiChanged) {
       await initI18n(settings.uiLanguage);
       applyI18n();
+      renderTargetOptions(settings.target);
       if (loadedLanguages) renderOcrLanguageOptions(loadedLanguages, ocrLanguage.value);
       void loadKeyStatus();
     }
@@ -150,7 +185,7 @@ async function load() {
   await initI18n(settings.uiLanguage);
   applyI18n();
   mode.value = settings.mode;
-  target.value = settings.target;
+  renderTargetOptions(settings.target);
   apiBaseUrl.value = settings.apiBaseUrl;
   model.value = settings.model;
   uiLanguage.value = settings.uiLanguage;
