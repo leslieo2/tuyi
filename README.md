@@ -18,9 +18,11 @@ A privacy-first Chrome extension for **macOS** that recognizes text inside image
 
 ### Option A: Homebrew (Recommended)
 
-1. Install the native helper and extension files with one command:
+1. Install the native helper and extension files via Homebrew:
 
    ```sh
+   brew tap leslieo2/tap
+   brew trust leslieo2/tap
    brew install --cask leslieo2/tap/tuyi
    ```
 
