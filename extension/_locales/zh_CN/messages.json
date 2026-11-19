@@ -23,7 +23,6 @@
   "btnCopied": { "message": "已复制" },
   "btnTranslateText": { "message": "翻译识别文字" },
   "btnClear": { "message": "清除" },
-  "translationHelp": { "message": "翻译时，会将当前图片识别出的文字发送给 $1（$2）。" },
 
   "routeOnlyOcrReselect": { "message": "仅识别 · 请在设置中重新选择处理方式" },
   "routeTranslateTo": { "message": "默认译为$1" },

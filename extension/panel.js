@@ -25,7 +25,6 @@ function refreshButtons() {
   byId("cancel").hidden = !active;
   byId("retry").hidden = !translationEnabled;
   byId("retry").disabled = !translationEnabled || Boolean(active) || !original.value;
-  byId("translation-help").hidden = !translationEnabled;
   const resultMode = active?.settings?.mode ?? preferences?.mode;
   byId("translation-result").hidden = resultMode !== "translate" && !translation.value;
   byId("copy-original").disabled = !original.value;
@@ -165,21 +164,12 @@ async function connectPanel() {
   port.postMessage({ type: "ready", windowId: current.id });
 }
 
-function providerHost(url) {
-  try {
-    return new URL(url).host;
-  } catch {
-    return url;
-  }
-}
-
 async function refreshRoute() {
   preferences = await getSettings();
   await initI18n(preferences.uiLanguage);
   applyI18n();
-  const { mode, target, needsModeSelection, apiBaseUrl, model } = preferences;
+  const { mode, target, needsModeSelection } = preferences;
   refreshButtons();
-  byId("translation-help").textContent = t("translationHelp", providerHost(apiBaseUrl), model);
   if (needsModeSelection) {
     byId("route").textContent = t("routeOnlyOcrReselect");
     return;

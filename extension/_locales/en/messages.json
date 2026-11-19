@@ -23,7 +23,6 @@
   "btnCopied": { "message": "Copied" },
   "btnTranslateText": { "message": "Translate Text" },
   "btnClear": { "message": "Clear" },
-  "translationHelp": { "message": "Translating sends the recognized text to $1 ($2)." },
 
   "routeOnlyOcrReselect": { "message": "OCR only · Please re-select mode in Settings" },
   "routeTranslateTo": { "message": "Translate to $1" },
