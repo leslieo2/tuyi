@@ -1,4 +1,5 @@
-import { MAX_IMAGE_BASE64 } from "./config.js";
+import { getSettings, MAX_IMAGE_BASE64 } from "./config.js";
+import { initI18n, t } from "./i18n.js";
 
 const menuId = "recognize-and-translate";
 const panels = new Map();
@@ -29,12 +30,27 @@ async function takePending(windowId) {
   return entry.expiresAt > Date.now() ? entry.message : null;
 }
 
+async function syncMenuTitle() {
+  const { uiLanguage } = await getSettings().catch(() => ({ uiLanguage: "auto" }));
+  await initI18n(uiLanguage);
+  await chrome.contextMenus.update(menuId, { title: t("menuTitle") }).catch(() => {});
+}
+
 chrome.runtime.onInstalled.addListener(() => {
-  chrome.contextMenus.removeAll(() => {
-    chrome.contextMenus.create({ id: menuId, title: "翻译图片中的内容", contexts: ["image"] });
+  void getSettings().catch(() => ({ uiLanguage: "auto" })).then(async ({ uiLanguage }) => {
+    await initI18n(uiLanguage);
+    chrome.contextMenus.removeAll(() => {
+      chrome.contextMenus.create({ id: menuId, title: t("menuTitle"), contexts: ["image"] });
+    });
   });
   void chrome.storage.local.remove("cloudConsent").catch(() => {});
   void chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(() => {});
+});
+
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === "local" && changes.uiLanguage) {
+    void syncMenuTitle();
+  }
 });
 
 function deliver(windowId, message) {

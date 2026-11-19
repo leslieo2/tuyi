@@ -267,5 +267,5 @@ test("isolated Google Chrome: image translation, local uploads and streaming UI"
   assert.equal(requests, 5);
 
   const stored = await panel.eval("chrome.storage.local.get(null)");
-  assert.deepEqual(Object.keys(stored).sort(), ["mode", "ocrLanguage", "target"]);
+  assert.deepEqual(Object.keys(stored).sort(), ["apiBaseUrl", "mode", "model", "ocrLanguage", "target", "uiLanguage"]);
 });

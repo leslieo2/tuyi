@@ -17,6 +17,8 @@ struct Request: Decodable {
     let language: String?
     let text: String?
     let target: String?
+    let apiBaseUrl: String?
+    let model: String?
     let cloudConsent: Int?
     let apiKey: String?
 }

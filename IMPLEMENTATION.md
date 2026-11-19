@@ -14,7 +14,7 @@
 | `extension/options.js`、`extension/config.js` | 验证并保存用户偏好。处理方式 `mode` 表达「识别并翻译」或「仅识别」。兼容旧 `provider` 的 `deepseek` 和 `ocr`。未知值进入仅识别，提醒用户重选。保存设置后清理旧字段，安装或更新时清理旧授权记录。 |
 | `extension/native-client.js`、`native/Protocol.swift` | 交换带版本的请求和响应。OCR、密钥配置和翻译各自使用独立请求。密钥操作只回传配置状态。 |
 | `native/Host.swift`、`native/VisionOCR.swift` | 验证消息，校验图片格式及尺寸，按方向解码并运行 Apple Vision。宿主关闭时结束对应任务。 |
-| `native/Translation.swift` | 从 Keychain 读取密钥，使用固定的 HTTPS 地址请求翻译并转发流式译文。原文作为独立消息，系统指令将其中的命令作为待翻译文本。侧栏以纯文本显示结果。 |
+| `native/Translation.swift` | 从 Keychain 读取密钥（本机 loopback HTTP 服务如 Ollama 允许无密钥），校验配置的 HTTPS 或 loopback HTTP OpenAI 兼容地址与模型名，拒绝重定向并转发流式译文。原文作为独立消息，系统指令将其中的命令作为待翻译文本。侧栏以纯文本显示结果。 |
 | `native/Keychain.swift`、`scripts/` | 用服务 `com.local_image_translator.deepseek` 下的 `manual-api-key` 项存取密钥，并提供本地组件安装、维护和卸载。旧密钥项可在明确指定卸载参数时清理。 |
 
 Chrome 原生主机清单只允许项目的扩展 ID。本地二进制也检查 Chrome 传入的来源参数。该限制依赖 Chrome 和 macOS 的本地信任边界。生产翻译请求使用 `https://api.deepseek.com/chat/completions`，拒绝重定向。只有测试版二进制支持 loopback 翻译服务和独立的测试钥匙串条目。

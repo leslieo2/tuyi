@@ -104,10 +104,35 @@ test("missing key is reported before any cloud request", async () => {
   assert.deepEqual(await ask(translate), error("missing_key"));
 });
 
-test("native translation validation rejects invalid language, blank and long source", async () => {
+test("native translation validation rejects invalid language, endpoint, model, blank and long source", async () => {
   assert.deepEqual(await ask({ ...translate, target: "ja\nInject" }), error("invalid_request"));
+  assert.deepEqual(await ask({ ...translate, apiBaseUrl: "http://example.com/v1" }), error("invalid_request"));
+  assert.deepEqual(await ask({ ...translate, model: "bad model" }), error("invalid_request"));
   assert.deepEqual(await ask({ ...translate, text: " " }), error("invalid_request"));
   assert.deepEqual(await ask({ ...translate, text: "a".repeat(16 * 1024 + 1) }), error("invalid_request"));
+});
+
+test("OpenAI-compatible models omit DeepSeek thinking parameter", async () => {
+  let received;
+  const service = await loopback(async (req, res) => {
+    received = await body(req);
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ choices: [{ message: { content: "译文" }, finish_reason: "stop" }] }));
+  });
+  try {
+    assert.deepEqual(await ask({
+      ...translate,
+      apiBaseUrl: "https://api.openai.com/v1",
+      model: "gpt-4o-mini"
+    }, { port: service.port }), [
+      { v: 1, type: "delta", text: "译文" },
+      { v: 1, type: "done" }
+    ]);
+    assert.equal(received.model, "gpt-4o-mini");
+    assert.equal(Object.hasOwn(received, "thinking"), false);
+  } finally {
+    await service.close();
+  }
 });
 
 test("stopped loopback fixture (real connection failure)", async () => {

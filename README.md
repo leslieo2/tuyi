@@ -1,6 +1,6 @@
 # 图译 · Image Translator
 
-A privacy-first Chrome extension for **macOS** that performs **on-device OCR** using Apple's `Vision` framework and optional streaming translation via **DeepSeek**, showing the recognized text and translation in Chrome's Side Panel.
+A privacy-first Chrome extension for **macOS** that performs **on-device OCR** using Apple's `Vision` framework and optional streaming translation via **any OpenAI-compatible API** (DeepSeek, OpenAI, OpenRouter, or local Ollama / LM Studio), showing the recognized text and translation in Chrome's Side Panel. Available in **English** and **Simplified Chinese** (`_locales`).
 
 > **macOS Only**
 > This project **only supports macOS** (it does **not** work on Windows or Linux). Its native helper binary relies on Apple system frameworks—`Vision` (OCR), `ImageIO` (image decoding), `NaturalLanguage` (language detection), and `Security` (macOS Keychain).
@@ -21,7 +21,9 @@ A privacy-first Chrome extension for **macOS** that performs **on-device OCR** u
 - **On-device OCR & OCR-only mode**: Text recognition runs locally on your Mac via Apple `Vision`. You can switch to **OCR-only (「仅识别」)** mode at any time so nothing leaves your device.
 - **Smart same-language skip**: Uses Apple's `NaturalLanguage` (`NLLanguageRecognizer`) locally to avoid unnecessary API calls when the recognized text already matches your target language (while keeping `zh-Hans` ↔ `zh-Hant` active).
 - **Session-only LRU cache**: Caches OCR results, translations, and supported Vision languages in memory / `chrome.storage.session` only—never persisted to disk.
-- **System Keychain storage**: Your DeepSeek API key is stored in macOS Keychain (`Local Image Translator — DeepSeek (manual)`), never in Chrome extension storage.
+- **OpenAI-compatible providers & local LLMs**: Defaults to DeepSeek (`deepseek-flash`), and supports configuring any OpenAI-compatible HTTPS endpoint (e.g. OpenAI, OpenRouter) or local loopback server (`http://127.0.0.1:11434/v1` for Ollama, `http://127.0.0.1:1234/v1` for LM Studio) plus custom model names.
+- **Bilingual UI (i18n)**: Follows Chrome's UI language (`en` / `zh_CN`) via `_locales` and lets you switch the interface language in Settings.
+- **System Keychain storage**: Your API key is stored in macOS Keychain (`Local Image Translator — DeepSeek (manual)`), never in Chrome extension storage. (Optional for unauthenticated local loopback endpoints.)
 
 ## Installation
 

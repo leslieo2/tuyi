@@ -6,7 +6,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "test": "node --test tests/config.test.mjs tests/native-client.test.mjs tests/cache.test.mjs",
+    "test": "node --test tests/config.test.mjs tests/native-client.test.mjs tests/cache.test.mjs tests/i18n.test.mjs",
     "test:native": "bash scripts/test-native.sh",
     "test:chrome": "bash scripts/test-chrome.sh",
     "test:deepseek": "node tests/deepseek-live.mjs",

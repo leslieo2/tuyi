@@ -3,7 +3,9 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { test } from "node:test";
-import { DEFAULTS, normalizeSettings, targetLanguage, translationRequest } from "../extension/config.js";
+import {
+  DEFAULTS, normalizeApiBaseUrl, normalizeModel, normalizeSettings, targetLanguage, translationRequest
+} from "../extension/config.js";
 import { manifest, root } from "./helpers.mjs";
 
 test("safe defaults and restrictive manifest", () => {
@@ -71,9 +73,30 @@ test("unrecognized modes cannot authorize cloud translation", () => {
   }
 });
 
-test("each DeepSeek request carries the target, source text and per-request approval", () => {
-  const settings = normalizeSettings({ cloudConsent: 1, target: "en-us", image: "discarded" });
-  assert.deepEqual(translationRequest(settings, "sample"), {
-    command: "translate", target: "en-US", text: "sample", cloudConsent: 1
+test("each translation request carries target, endpoint, model, source text and per-request approval", () => {
+  const settings = normalizeSettings({
+    cloudConsent: 1, target: "en-us", apiBaseUrl: "https://api.openai.com/v1/", model: "gpt-4o-mini", image: "discarded"
   });
+  assert.deepEqual(translationRequest(settings, "sample"), {
+    command: "translate",
+    target: "en-US",
+    apiBaseUrl: "https://api.openai.com/v1",
+    model: "gpt-4o-mini",
+    text: "sample",
+    cloudConsent: 1
+  });
+});
+
+test("API base URL and model validation reject unsafe or malformed values", () => {
+  assert.equal(normalizeApiBaseUrl("https://api.openai.com/v1/"), "https://api.openai.com/v1");
+  assert.equal(normalizeApiBaseUrl("http://127.0.0.1:11434/v1/"), "http://127.0.0.1:11434/v1");
+  assert.equal(normalizeApiBaseUrl("http://localhost:1234/v1"), "http://localhost:1234/v1");
+  for (const bad of ["", "http://api.openai.com/v1", "https://user:pass@api.openai.com", "https://api.openai.com/#frag", "ftp://host"]) {
+    assert.equal(normalizeApiBaseUrl(bad), null);
+  }
+  assert.equal(normalizeModel(" gpt-4o-mini "), "gpt-4o-mini");
+  assert.equal(normalizeModel("qwen2.5:7b"), "qwen2.5:7b");
+  for (const bad of ["", "   ", "gpt 4o", "gpt\n4o", "x".repeat(129)]) {
+    assert.equal(normalizeModel(bad), null);
+  }
 });

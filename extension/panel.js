@@ -1,6 +1,7 @@
 import { SessionCache, sha256 } from "./cache.js";
 import { getSettings, translationRequest } from "./config.js";
 import { errorText } from "./errors.js";
+import { applyI18n, displayLocaleTag, initI18n, t } from "./i18n.js";
 import { readFile, readPageImage } from "./image.js";
 import { nativeRequest } from "./native-client.js";
 
@@ -44,7 +45,9 @@ function start(work) {
   active = job;
   refreshButtons();
   const { signal } = job.controller;
-  void getSettings().then(settings => {
+  void getSettings().then(async settings => {
+    signal.throwIfAborted();
+    await initI18n(settings.uiLanguage);
     signal.throwIfAborted();
     job.settings = settings;
     refreshButtons();
@@ -64,11 +67,11 @@ function start(work) {
 async function translate(settings, signal, { useCache = false } = {}) {
   signal.throwIfAborted();
   if (settings.mode === "ocr") {
-    status("识别完成。", "done");
+    status(t("statusOcrDone"), "done");
     return;
   }
   const source = original.value;
-  const cacheKey = `tr:${settings.target}:${await sha256(source)}`;
+  const cacheKey = `tr:${settings.apiBaseUrl}:${settings.model}:${settings.target}:${await sha256(source)}`;
   signal.throwIfAborted();
   if (useCache) {
     const cached = await translationCache.get(cacheKey);
@@ -76,11 +79,11 @@ async function translate(settings, signal, { useCache = false } = {}) {
     if (typeof cached === "string") {
       translation.value = cached;
       refreshButtons();
-      status("翻译完成。", "done");
+      status(t("statusTranslateDone"), "done");
       return;
     }
   }
-  status("正在翻译…", "busy");
+  status(t("statusTranslating"), "busy");
   await nativeRequest(translationRequest(settings, source), {
     signal,
     onDelta: text => {
@@ -90,11 +93,11 @@ async function translate(settings, signal, { useCache = false } = {}) {
   });
   signal.throwIfAborted();
   if (translation.value) await translationCache.set(cacheKey, translation.value);
-  status("翻译完成。", "done");
+  status(t("statusTranslateDone"), "done");
 }
 
 async function recognizeImage(acquire, language, signal) {
-  status("正在读取图片…", "busy");
+  status(t("statusReadingImage"), "busy");
   const acquisition = acquire(signal);
   acquire = undefined;
   const image = await acquisition;
@@ -104,7 +107,7 @@ async function recognizeImage(acquire, language, signal) {
   const cached = await ocrCache.get(cacheKey);
   signal.throwIfAborted();
   if (typeof cached === "string") return { text: cached };
-  status("正在识别图片中的文字…", "busy");
+  status(t("statusRecognizing"), "busy");
   const result = await nativeRequest({ command: "ocr", image, language }, { signal });
   signal.throwIfAborted();
   await ocrCache.set(cacheKey, result.text);
@@ -122,13 +125,13 @@ function processImage(acquire, translateAfterRecognition = false) {
     original.value = text;
     refreshButtons();
     if (!text) {
-      status("没有识别到文字。", "empty");
+      status(t("statusNoText"), "empty");
       return;
     }
     if (translateAfterRecognition && settings.mode === "translate") {
       await translate(settings, signal, { useCache: true });
     } else {
-      status("识别完成。", "done");
+      status(t("statusOcrDone"), "done");
     }
   });
 }
@@ -162,16 +165,27 @@ async function connectPanel() {
   port.postMessage({ type: "ready", windowId: current.id });
 }
 
+function providerHost(url) {
+  try {
+    return new URL(url).host;
+  } catch {
+    return url;
+  }
+}
+
 async function refreshRoute() {
   preferences = await getSettings();
-  const { mode, target, needsModeSelection } = preferences;
+  await initI18n(preferences.uiLanguage);
+  applyI18n();
+  const { mode, target, needsModeSelection, apiBaseUrl, model } = preferences;
   refreshButtons();
+  byId("translation-help").textContent = t("translationHelp", providerHost(apiBaseUrl), model);
   if (needsModeSelection) {
-    byId("route").textContent = "仅识别 · 请在设置中重新选择处理方式";
+    byId("route").textContent = t("routeOnlyOcrReselect");
     return;
   }
-  const language = new Intl.DisplayNames(["zh-CN"], { type: "language" });
-  byId("route").textContent = mode === "translate" ? `默认译为${language.of(target)}` : "仅识别";
+  const language = new Intl.DisplayNames([displayLocaleTag()], { type: "language" });
+  byId("route").textContent = mode === "translate" ? t("routeTranslateTo", language.of(target)) : t("routeOnlyOcr");
 }
 
 byId("settings").onclick = () => void chrome.runtime.openOptionsPage();
@@ -191,9 +205,9 @@ byId("paste").onclick = async () => {
       processImage(signal => readFile(blob, signal));
       return;
     }
-    status("剪贴板中没有图片。请先截图或复制图片。", "empty");
+    status(t("statusNoClipboardImage"), "empty");
   } catch {
-    status("请按 ⌘V 粘贴剪贴板中的图片。");
+    status(t("statusPasteHint"));
   }
 };
 document.addEventListener("paste", event => {
@@ -224,14 +238,14 @@ document.addEventListener("drop", event => {
 byId("retry").onclick = () => retry();
 byId("cancel").onclick = () => {
   stop();
-  status("已取消。");
+  status(t("statusCancelled"));
 };
 byId("clear").onclick = () => {
   stop();
   original.value = "";
   translation.value = "";
   fileInput.value = "";
-  status("已清除。");
+  status(t("statusCleared"));
   refreshButtons();
 };
 
@@ -241,17 +255,18 @@ for (const [id, input] of [["copy-original", original], ["copy-translation", tra
   button.onclick = async () => {
     try {
       await navigator.clipboard.writeText(input.value);
-      button.textContent = "已复制";
+      button.textContent = t("btnCopied");
       clearTimeout(copiedTimer);
-      copiedTimer = setTimeout(() => { button.textContent = "复制"; }, 1500);
+      copiedTimer = setTimeout(() => { button.textContent = t("btnCopy"); }, 1500);
     } catch {
-      status("未能写入剪贴板，请选中文字手动复制。", "error");
+      status(t("statusCopyFailed"), "error");
     }
   };
 }
 
 chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === "local" && (changes.mode || changes.provider || changes.target)) {
+  if (area === "local" && (changes.mode || changes.provider || changes.target ||
+      changes.apiBaseUrl || changes.model || changes.uiLanguage)) {
     void refreshRoute().catch(() => {});
   }
 });
@@ -261,5 +276,5 @@ window.addEventListener("pagehide", () => {
   panelPort = undefined;
   port?.disconnect();
 });
-void connectPanel().catch(() => status("无法连接扩展后台。可上传或粘贴图片。", "error"));
+void connectPanel().catch(() => status(t("statusBgUnavailable"), "error"));
 void refreshRoute().catch(() => {});
