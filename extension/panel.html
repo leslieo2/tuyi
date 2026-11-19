@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>图片识别翻译</title>
+  <link rel="stylesheet" href="ui.css">
+</head>
+<body class="panel">
+  <header class="top">
+    <div>
+      <h1>图片识别翻译</h1>
+      <p id="route" class="muted"></p>
+    </div>
+    <button id="settings" type="button">设置</button>
+  </header>
+  <section class="surface controls" aria-label="图片输入">
+    <div class="actions">
+      <button id="choose" type="button">上传图片</button>
+      <button id="paste" type="button">粘贴图片</button>
+      <input id="file" type="file" accept="image/*" hidden>
+    </div>
+    <p class="muted">也可右键网页图片，或用 <kbd>⌃⇧⌘4</kbd> 框选截图后粘贴。</p>
+  </section>
+  <div class="surface progress">
+    <p id="status" role="status" aria-live="polite">右键网页图片，或上传／粘贴图片。</p>
+    <button id="cancel" type="button" hidden>取消</button>
+  </div>
+  <section class="surface result">
+    <div class="result-head">
+      <h2><label for="original">原文</label></h2>
+      <button id="copy-original" type="button" aria-label="复制原文" disabled>复制</button>
+    </div>
+    <textarea id="original" rows="5" readonly placeholder="识别结果" dir="auto"></textarea>
+  </section>
+  <section id="translation-result" class="surface result" hidden>
+    <div class="result-head">
+      <h2><label for="translation">译文</label></h2>
+      <button id="copy-translation" type="button" aria-label="复制译文" disabled>复制</button>
+    </div>
+    <textarea id="translation" rows="6" readonly placeholder="翻译结果" dir="auto"></textarea>
+  </section>
+  <div class="actions">
+    <button id="retry" class="primary" type="button" aria-describedby="translation-help" disabled hidden>翻译识别文字</button>
+    <button id="clear" type="button">清除</button>
+  </div>
+  <p id="translation-help" class="muted" hidden>翻译时，会将当前图片识别出的文字发送给 DeepSeek。</p>
+  <script type="module" src="panel.js"></script>
+</body>
+</html>

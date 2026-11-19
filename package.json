@@ -1,0 +1,15 @@
+{
+  "name": "local-image-translator",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test tests/config.test.mjs tests/native-client.test.mjs",
+    "test:native": "bash scripts/test-native.sh",
+    "test:chrome": "bash scripts/test-chrome.sh",
+    "test:deepseek": "node tests/deepseek-live.mjs",
+    "test:chrome-menu": "bash scripts/test-chrome-menu.sh"
+  }
+}
