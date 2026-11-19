@@ -55,7 +55,7 @@ This repository uses [semantic-release](https://github.com/semantic-release/sema
 - `BREAKING CHANGE:` / `feat!: ...` → major release (`x.0.0`)
 - `docs:`, `chore:`, `test:`, `refactor:` → no new release
 
-On qualifying commits to `master`, CI updates `CHANGELOG.md`, `package.json`, and `extension/manifest.json`, builds the universal macOS zip via `scripts/package.sh`, and publishes a GitHub Release.
+`semantic-release` updates `package.json`, `extension/manifest.json`, and `CHANGELOG.md` automatically, and attaches `tuyi-v*-macos.zip` to the GitHub Release. After a release publishes, update `Casks/tuyi.rb` in [`leslieo2/homebrew-tap`](https://github.com/leslieo2/homebrew-tap) with the new version and SHA-256.
 
 ## Guidelines
 

@@ -16,20 +16,44 @@ A privacy-first Chrome extension for **macOS** that recognizes text inside image
 
 ## Installation (macOS)
 
-1. Download the latest `tuyi-v*-macos.zip` from the [**Releases**](https://github.com/leslieo2/tuyi/releases) page and unzip it.
-2. Open **Terminal** in the unzipped folder and register the macOS helper:
+### Option A: Homebrew (Recommended)
+
+1. Install the native helper and extension files with one command:
 
    ```sh
-   ./scripts/install.sh
+   brew install --cask leslieo2/tap/tuyi
    ```
 
-3. Load the extension in Chrome:
+2. Load the extension in Google Chrome *(first time only)*:
    - Open `chrome://extensions` and turn on **Developer mode** (top right).
-   - Click **Load unpacked** and select the **`extension`** folder inside the unzipped directory.
+   - Click **Load unpacked**.
+   - In the macOS file dialog, press `⇧⌘G`, paste the fixed path below, and press **Return**:
 
-4. *(Optional, for translation)* Click the extension icon in Chrome's toolbar → **Settings**, choose your translation service/model, and save your API key.
+     ```text
+     ~/Library/Application Support/Local Image Translator/extension
+     ```
 
-> **Tip:** When updating to a new release, re-run `./scripts/install.sh`, click **Reload** on the extension card in `chrome://extensions`, and refresh any open tabs. If macOS asks for Keychain permission after updating the native helper, enter your login password and choose **Always Allow**.
+3. *(Optional, for translation)* Click the extension icon in Chrome's toolbar → **Settings**, choose your translation service/model, and save your API key.
+
+**Updating with Homebrew:**
+
+```sh
+brew upgrade --cask tuyi
+```
+
+Then click **Reload** on the Tuyi card in `chrome://extensions` and refresh any open tabs (no need to re-select the folder).
+
+### Option B: Manual Release Download
+
+1. Download the latest `tuyi-v*-macos.zip` from [**Releases**](https://github.com/leslieo2/tuyi/releases) and unzip it.
+2. Run `./scripts/install.sh` inside the unzipped folder.
+3. Open `chrome://extensions`, turn on **Developer mode**, click **Load unpacked**, and select:
+
+   ```text
+   ~/Library/Application Support/Local Image Translator/extension
+   ```
+
+> **Note:** If macOS asks for Keychain permission after updating the native helper, enter your login password and choose **Always Allow**.
 
 ## How to Use
 
@@ -46,13 +70,13 @@ A privacy-first Chrome extension for **macOS** that recognizes text inside image
 ## Uninstall
 
 1. Remove the extension from `chrome://extensions`.
-2. In the unzipped folder, run:
+2. If installed via Homebrew:
 
    ```sh
-   ./scripts/uninstall.sh
-   # To also delete the saved API key from macOS Keychain:
-   ./scripts/uninstall.sh --delete-key
+   brew uninstall --cask tuyi
    ```
+
+   *(To also remove a saved API key from macOS Keychain, run `security delete-generic-password -s com.local_image_translator.deepseek` or `./scripts/uninstall.sh --delete-key` from the source/release folder.)*
 
 ## Developers & License
 
