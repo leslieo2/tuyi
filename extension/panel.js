@@ -175,12 +175,18 @@ document.addEventListener("paste", event => {
   event.preventDefault();
   processImage(signal => readFile(file, signal));
 });
+const dropzone = byId("dropzone");
 document.addEventListener("dragover", event => {
   if (Array.from(event.dataTransfer?.items ?? []).some(item => item.kind === "file")) {
     event.preventDefault();
+    if (dropzone) dropzone.dataset.drag = "over";
   }
 });
+document.addEventListener("dragleave", event => {
+  if (event.relatedTarget === null && dropzone) delete dropzone.dataset.drag;
+});
 document.addEventListener("drop", event => {
+  if (dropzone) delete dropzone.dataset.drag;
   const file = Array.from(event.dataTransfer?.files ?? [])
     .find(entry => entry.type.startsWith("image/"));
   if (!file) return;

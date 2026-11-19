@@ -1,71 +1,200 @@
 :root {
   color-scheme: light dark;
-  font: 14px/1.55 -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
-  --canvas: light-dark(#f3f7f7, #142122);
-  --surface: light-dark(#fff, #1b2b2e);
-  --input: light-dark(#f9fbfb, #152326);
-  --line: light-dark(#c9d8d8, #3b5657);
-  --text: light-dark(#182b2d, #e8f1f0);
-  --muted: light-dark(#526a6b, #aec1c0);
-  --accent: light-dark(#005850, #91e5d3);
-  --on-accent: light-dark(#fff, #142122);
-  --error: light-dark(#a32b24, #ffb0a6);
+  font: 13.5px/1.55 -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", sans-serif;
+  --canvas: light-dark(#f2f6f6, #111b1c);
+  --surface: light-dark(#ffffff, #192628);
+  --surface-subtle: light-dark(#f7fafa, #142022);
+  --input: light-dark(#fafcfc, #121d1f);
+  --line: light-dark(#d4e1e1, #2b4143);
+  --text: light-dark(#152628, #e9f2f1);
+  --muted: light-dark(#566e70, #98b0af);
+  --accent: light-dark(#00665c, #7fe0cd);
+  --accent-soft: light-dark(rgb(0 102 92 / 0.09), rgb(127 224 205 / 0.12));
+  --on-accent: light-dark(#ffffff, #0e1a1b);
+  --error: light-dark(#b42318, #ff9b93);
+  --error-soft: light-dark(rgb(180 35 24 / 0.08), rgb(255 155 147 / 0.12));
+  --shadow: 0 1px 2px light-dark(rgb(15 35 36 / 0.05), rgb(0 0 0 / 0.28));
 }
+
 *, *::before, *::after { box-sizing: border-box; }
 [hidden] { display: none !important; }
+
 body {
   background: var(--canvas);
   color: var(--text);
   margin: 0;
-  padding: 16px;
+  padding: 14px;
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
-body.options { max-width: 640px; margin: 20px auto; }
+
+body.options {
+  max-width: 600px;
+  margin: 28px auto;
+  padding: 20px;
+  gap: 14px;
+}
+
 h1, h2, p { margin: 0; }
-h1 { font-size: 20px; line-height: 1.35; }
-h2 { font-size: 14px; }
+h1 { font-size: 17px; font-weight: 650; letter-spacing: -0.01em; line-height: 1.35; }
+body.options h1 { font-size: 20px; }
+h2 { font-size: 13px; font-weight: 600; color: var(--muted); }
+
 .top, .result-head, .progress {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 8px;
 }
-.top p { margin-top: 4px; }
+
+.top p { margin-top: 2px; }
+
 .surface {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 11px;
+  border-radius: 12px;
   padding: 12px;
   min-width: 0;
+  box-shadow: var(--shadow);
+  transition: border-color .15s ease, background-color .15s ease;
 }
-.controls p { margin: 7px 0 0; }
-.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+
+.controls {
+  background: var(--surface-subtle);
+  border-style: dashed;
+}
+
+.controls[data-drag="over"] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.controls p { margin: 8px 0 0; line-height: 1.45; }
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
 .muted { color: var(--muted); font-size: 12px; }
+
+kbd {
+  display: inline-block;
+  padding: 1px 5px;
+  font: 11px/1.35 ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+}
+
 button, select, input, textarea {
   font: inherit;
   color: var(--text);
   background: var(--input);
   border: 1px solid var(--line);
-  border-radius: 7px;
+  border-radius: 8px;
+  transition: border-color .15s ease, background-color .15s ease, opacity .15s ease;
 }
-button { padding: 4px 10px; cursor: pointer; white-space: nowrap; }
-button:hover:enabled { border-color: var(--accent); }
-button:disabled { opacity: .5; cursor: default; }
-.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
-:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.progress { padding: 8px 12px; min-height: 39px; }
-[data-state="busy"], [data-state="done"] { color: var(--accent); }
-[data-state="error"] { color: var(--error); }
+
+button {
+  padding: 5px 12px;
+  min-height: 30px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+button:hover:enabled {
+  border-color: var(--accent);
+  background: var(--surface);
+}
+
+button:active:enabled { transform: translateY(0.5px); }
+button:disabled { opacity: .45; cursor: default; }
+
+.result-head button {
+  padding: 3px 10px;
+  min-height: 26px;
+  font-size: 12px;
+}
+
+.primary {
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: var(--accent);
+}
+
+.primary:hover:enabled {
+  background: var(--accent);
+  opacity: .92;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.progress {
+  padding: 8px 12px;
+  min-height: 38px;
+  font-size: 13px;
+}
+
+.progress:has([data-state="busy"]),
+.progress:has([data-state="done"]) {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  background: var(--accent-soft);
+}
+
+.progress:has([data-state="error"]) {
+  border-color: color-mix(in srgb, var(--error) 45%, var(--line));
+  background: var(--error-soft);
+}
+
+#status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+#status[data-state="busy"]::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  flex: none;
+  border: 2px solid color-mix(in srgb, var(--accent) 28%, transparent);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin .75s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+[data-state="busy"], [data-state="done"] { color: var(--accent); font-weight: 500; }
+[data-state="error"] { color: var(--error); font-weight: 500; }
+
 .result textarea {
   display: block;
   width: 100%;
   margin: 8px 0 0;
-  padding: 8px;
+  padding: 9px 10px;
+  line-height: 1.6;
   resize: vertical;
-  min-height: 55px;
+  min-height: 60px;
 }
+
+.result textarea::placeholder {
+  color: var(--muted);
+  opacity: .75;
+}
+
 .form { display: grid; gap: 8px; }
-.form select, .form input { width: 100%; padding: 6px 8px; }
-.form label { font-weight: 600; margin-top: 4px; }
+.form select, .form input { width: 100%; padding: 7px 10px; min-height: 34px; }
+.form label { font-weight: 600; font-size: 13px; margin-top: 4px; }
 .form .actions { margin-top: 8px; }
