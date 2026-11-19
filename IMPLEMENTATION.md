@@ -10,7 +10,7 @@
 | --- | --- |
 | `extension/background.js` | 注册图片右键菜单，打开侧栏，按窗口转交触发操作的标签页、frame 和图片地址。等待侧栏连接的消息暂存在内存与 `chrome.storage.session`。 |
 | `extension/image-selection.js`、`extension/image.js` | 内容脚本在可信的图片右键事件中记录目标图片引用。选择菜单后，侧栏向该 frame 读取一次并按需绘制像素。消息需匹配选图时的页面与图片地址，像素经 Canvas 同源检查。上传、拖拽和粘贴直接读取用户选中的数据。 |
-| `extension/panel.js` | 管理当前任务、进度、结果和取消。启动时读取一次已保存的处理方式与语言。右键及侧栏翻译动作是两处翻译入口，上传和粘贴的处理到本地识别为止。 |
+| `extension/panel.js`、`extension/cache.js` | 管理当前任务、进度、结果、取消和会话级 LRU 缓存（仅存内存 / `chrome.storage.session`，不写入磁盘）。启动时读取一次已保存的处理方式与语言。右键及侧栏翻译动作是两处翻译入口，上传和粘贴的处理到本地识别为止；手动点击「翻译识别文字」会跳过译文缓存以获取最新结果。 |
 | `extension/options.js`、`extension/config.js` | 验证并保存用户偏好。处理方式 `mode` 表达「识别并翻译」或「仅识别」。兼容旧 `provider` 的 `deepseek` 和 `ocr`。未知值进入仅识别，提醒用户重选。保存设置后清理旧字段，安装或更新时清理旧授权记录。 |
 | `extension/native-client.js`、`native/Protocol.swift` | 交换带版本的请求和响应。OCR、密钥配置和翻译各自使用独立请求。密钥操作只回传配置状态。 |
 | `native/Host.swift`、`native/VisionOCR.swift` | 验证消息，校验图片格式及尺寸，按方向解码并运行 Apple Vision。宿主关闭时结束对应任务。 |

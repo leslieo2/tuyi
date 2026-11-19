@@ -1,3 +1,4 @@
+import { SessionCache, sha256 } from "./cache.js";
 import { getSettings, translationRequest } from "./config.js";
 import { errorText } from "./errors.js";
 import { readFile, readPageImage } from "./image.js";
@@ -7,6 +8,8 @@ const byId = id => document.getElementById(id);
 const original = byId("original");
 const translation = byId("translation");
 const fileInput = byId("file");
+const ocrCache = new SessionCache("cache_ocr", 25);
+const translationCache = new SessionCache("cache_translation", 25);
 let active;
 let panelPort;
 let preferences;
@@ -58,14 +61,27 @@ function start(work) {
   });
 }
 
-async function translate(settings, signal) {
+async function translate(settings, signal, { useCache = false } = {}) {
   signal.throwIfAborted();
   if (settings.mode === "ocr") {
     status("识别完成。", "done");
     return;
   }
+  const source = original.value;
+  const cacheKey = `tr:${settings.target}:${await sha256(source)}`;
+  signal.throwIfAborted();
+  if (useCache) {
+    const cached = await translationCache.get(cacheKey);
+    signal.throwIfAborted();
+    if (typeof cached === "string") {
+      translation.value = cached;
+      refreshButtons();
+      status("翻译完成。", "done");
+      return;
+    }
+  }
   status("正在翻译…", "busy");
-  await nativeRequest(translationRequest(settings, original.value), {
+  await nativeRequest(translationRequest(settings, source), {
     signal,
     onDelta: text => {
       translation.value += text;
@@ -73,6 +89,7 @@ async function translate(settings, signal) {
     }
   });
   signal.throwIfAborted();
+  if (translation.value) await translationCache.set(cacheKey, translation.value);
   status("翻译完成。", "done");
 }
 
@@ -82,8 +99,16 @@ async function recognizeImage(acquire, language, signal) {
   acquire = undefined;
   const image = await acquisition;
   signal.throwIfAborted();
+  const cacheKey = `ocr:${language}:${await sha256(image)}`;
+  signal.throwIfAborted();
+  const cached = await ocrCache.get(cacheKey);
+  signal.throwIfAborted();
+  if (typeof cached === "string") return { text: cached };
   status("正在识别图片中的文字…", "busy");
-  return nativeRequest({ command: "ocr", image, language }, { signal });
+  const result = await nativeRequest({ command: "ocr", image, language }, { signal });
+  signal.throwIfAborted();
+  await ocrCache.set(cacheKey, result.text);
+  return result;
 }
 
 function processImage(acquire, translateAfterRecognition = false) {
@@ -100,8 +125,11 @@ function processImage(acquire, translateAfterRecognition = false) {
       status("没有识别到文字。", "empty");
       return;
     }
-    if (translateAfterRecognition && settings.mode === "translate") await translate(settings, signal);
-    else status("识别完成。", "done");
+    if (translateAfterRecognition && settings.mode === "translate") {
+      await translate(settings, signal, { useCache: true });
+    } else {
+      status("识别完成。", "done");
+    }
   });
 }
 

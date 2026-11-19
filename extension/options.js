@@ -109,7 +109,12 @@ async function load() {
   save.disabled = false;
 
   try {
-    const { languages } = await nativeRequest({ command: "languages" });
+    const cached = await chrome.storage.session?.get("cache_languages").catch(() => null);
+    let languages = Array.isArray(cached?.cache_languages) ? cached.cache_languages : null;
+    if (!languages) {
+      ({ languages } = await nativeRequest({ command: "languages" }));
+      void chrome.storage.session?.set({ cache_languages: languages }).catch(() => {});
+    }
     const display = new Intl.DisplayNames(["zh-CN"], { type: "language" });
     const chosen = ocrLanguage.value;
     const options = [new Option("自动检测", "auto")];
