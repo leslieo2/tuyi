@@ -4,6 +4,7 @@ const errors = {
   native_timeout: "本地处理超时。请换用较小的图片或检查翻译服务后重试。",
   invalid_request: "请求参数无效。请检查设置后重试。",
   image_read: "当前页面的图片无法读取。请上传、粘贴图片，或将 macOS 框选截图粘贴到面板。",
+  image_read_reload: "当前页面的图片无法读取。若刚重载扩展，请先刷新网页后重试；也可上传或粘贴截图。",
   image_size: "图片超过 8 MiB。请裁剪或缩小后重试。",
   image_dimensions: "图片超过 4,000 万像素或单边超过 12,000 像素。请裁剪或缩小后重试。",
   invalid_image: "图片损坏或格式不受支持。可另存为 PNG 或 JPEG 后重试。",

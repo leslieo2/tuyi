@@ -44,7 +44,8 @@ async function captureCroppedRegion(windowId, rect, signal) {
   let dataUrl;
   try {
     dataUrl = await chrome.tabs.captureVisibleTab(windowId, { format: "png" });
-  } catch {
+  } catch (error) {
+    console.warn("captureVisibleTab failed:", error);
     throw new Error("image_read");
   }
   signal.throwIfAborted();
@@ -80,9 +81,13 @@ export async function readPageImage({ tabId, windowId, frameId, source, page }, 
     timeout = setTimeout(() => reject(new Error("image_read")), 12_000);
   });
   try {
+    let missingReceiver = false;
     const response = await Promise.race([
       chrome.tabs.sendMessage(tabId, { type: "read-image-selection", source, page }, { frameId })
-        .catch(() => null),
+        .catch(() => {
+          missingReceiver = true;
+          return null;
+        }),
       interrupted
     ]);
     signal.throwIfAborted();
@@ -90,7 +95,7 @@ export async function readPageImage({ tabId, windowId, frameId, source, page }, 
     if (response?.code === "capture_visible" && response.rect && Number.isInteger(windowId)) {
       return await captureCroppedRegion(windowId, response.rect, signal);
     }
-    throw new Error(response?.code ?? "image_read");
+    throw new Error(response?.code ?? (missingReceiver ? "image_read_reload" : "image_read"));
   } finally {
     clearTimeout(timeout);
     signal.removeEventListener("abort", abort);

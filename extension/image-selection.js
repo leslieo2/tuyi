@@ -10,23 +10,36 @@
     selection = undefined;
   }
 
-  function findImage(event) {
-    const fromPath = event.composedPath().find(node => node instanceof HTMLImageElement);
-    if (fromPath) return fromPath;
-    if (typeof event.clientX !== "number" || typeof event.clientY !== "number") return null;
-    return document.elementsFromPoint(event.clientX, event.clientY)
-      .find(node => node instanceof HTMLImageElement) ?? null;
+  function findImages(event) {
+    const seen = new Set();
+    const list = [];
+    for (const node of event.composedPath()) {
+      if (node instanceof HTMLImageElement && !seen.has(node)) {
+        seen.add(node);
+        list.push(node);
+      }
+    }
+    if (typeof event.clientX === "number" && typeof event.clientY === "number") {
+      for (const node of document.elementsFromPoint(event.clientX, event.clientY)) {
+        if (node instanceof HTMLImageElement && !seen.has(node)) {
+          seen.add(node);
+          list.push(node);
+        }
+      }
+    }
+    return list;
   }
 
   window.addEventListener("contextmenu", event => {
     if (!event.isTrusted) return;
     clearSelection();
-    const image = findImage(event);
-    if (!image?.complete || !image.currentSrc || !image.naturalWidth || !image.naturalHeight) return;
+    const candidates = findImages(event)
+      .filter(image => image.currentSrc && image.naturalWidth && image.naturalHeight)
+      .map(image => ({ image: new WeakRef(image), source: image.currentSrc }));
+    if (!candidates.length) return;
 
     selection = {
-      image: new WeakRef(image),
-      source: image.currentSrc,
+      candidates,
       page: location.href,
       expiresAt: Date.now() + selectionLifetime
     };
@@ -145,13 +158,15 @@
         sender.id !== chrome.runtime.id || sender.url !== chrome.runtime.getURL("panel.html")) return;
     const selected = selection;
     clearSelection();
-    const image = selected?.image.deref();
-    if (!selected || !image?.isConnected || !image.complete ||
+    const match = selected?.candidates.find(entry => entry.source === message.source);
+    const image = match?.image.deref();
+    const sameTopPage = window !== window.top ||
+      withoutFragment(selected?.page) === withoutFragment(message.page);
+    if (!selected || !match || !image?.isConnected ||
         Date.now() >= selected.expiresAt ||
-        selected.source !== message.source ||
-        image.currentSrc !== selected.source ||
+        image.currentSrc !== match.source ||
         !image.naturalWidth || !image.naturalHeight ||
-        withoutFragment(selected.page) !== withoutFragment(message.page) ||
+        !sameTopPage ||
         withoutFragment(selected.page) !== withoutFragment(location.href)) {
       respond({ code: "image_read" });
       return;
