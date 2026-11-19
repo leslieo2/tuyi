@@ -1,11 +1,11 @@
 {
-  "extName": { "message": "Image Translator (macOS)" },
-  "extShortName": { "message": "Image Translator" },
+  "extName": { "message": "Tuyi · Image Translator" },
+  "extShortName": { "message": "Tuyi" },
   "extDescription": { "message": "Right-click web images to recognize text locally on macOS and translate via any OpenAI-compatible API." },
-  "actionTitle": { "message": "Image Translator — Open side panel" },
+  "actionTitle": { "message": "Tuyi — Open side panel" },
   "menuTitle": { "message": "Translate Text in Image" },
 
-  "panelTitle": { "message": "Image Translator" },
+  "panelTitle": { "message": "Tuyi" },
   "btnSettings": { "message": "Settings" },
   "btnUpload": { "message": "Upload Image" },
   "btnPaste": { "message": "Paste Image" },
@@ -41,7 +41,7 @@
   "statusCopyFailed": { "message": "Could not write to clipboard. Please copy the text manually." },
   "statusBgUnavailable": { "message": "Could not connect to extension background. Upload or paste an image instead." },
 
-  "optionsTitle": { "message": "Image Translator Settings" },
+  "optionsTitle": { "message": "Tuyi Settings" },
   "labelMode": { "message": "Mode" },
   "modeTranslate": { "message": "Recognize & Translate" },
   "modeOcr": { "message": "OCR Only" },

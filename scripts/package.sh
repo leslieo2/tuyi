@@ -4,7 +4,7 @@ root="$(cd -- "$(dirname -- "$0")/.." && pwd)"
 cd "$root"
 
 version="$(node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync("extension/manifest.json", "utf8")).version)')"
-stage_name="image-translator-v${version}-macos"
+stage_name="tuyi-v${version}-macos"
 stage_dir="$root/.build/$stage_name"
 zip_path="$root/.build/${stage_name}.zip"
 

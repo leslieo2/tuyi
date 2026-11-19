@@ -4,7 +4,7 @@ Guidance for AI coding agents working in this repository.
 
 ## Overview
 
-**Image Translator** is a macOS-only (`13.0+`) Chrome Manifest V3 extension paired with a Swift Native Messaging host:
+**Tuyi** (`tuyi`) is a macOS-only (`13.0+`) Chrome Manifest V3 extension paired with a Swift Native Messaging host:
 
 - `extension/` — Plain ES modules (no bundler, no runtime npm dependencies), Side Panel & Options UI, `_locales` (`en`, `zh_CN`), content script (`image-selection.js`), and session-only cache (`cache.js`).
 - `native/` — Swift native host (`Host.swift`, `Protocol.swift`, `VisionOCR.swift`, `Translation.swift`, `Keychain.swift`, `Identity.swift`) compiled with `xcrun swiftc`.

@@ -22,7 +22,7 @@
       {
         "assets": [
           {
-            "path": ".build/image-translator-v*-macos.zip",
+            "path": ".build/tuyi-v*-macos.zip",
             "label": "macOS Universal Package (zip)"
           }
         ]

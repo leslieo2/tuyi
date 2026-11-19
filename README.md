@@ -1,4 +1,4 @@
-# Image Translator
+# Tuyi (图译)
 
 A privacy-first Chrome extension for **macOS** that recognizes text inside images locally on your Mac and translates it in Chrome's Side Panel.
 
@@ -16,7 +16,7 @@ A privacy-first Chrome extension for **macOS** that recognizes text inside image
 
 ## Installation (macOS)
 
-1. Download the latest `image-translator-v*-macos.zip` from the [**Releases**](https://github.com/leslieo2/local-image-translator/releases) page and unzip it.
+1. Download the latest `tuyi-v*-macos.zip` from the [**Releases**](https://github.com/leslieo2/tuyi/releases) page and unzip it.
 2. Open **Terminal** in the unzipped folder and register the macOS helper:
 
    ```sh
