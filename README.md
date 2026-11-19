@@ -1,4 +1,4 @@
-# 图译 · Image Translator
+# 图译 · Image Translator (`v1.0.6`)
 
 A privacy-first Chrome extension for **macOS** that performs **on-device OCR** using Apple's `Vision` framework and optional streaming translation via **any OpenAI-compatible API** (DeepSeek, OpenAI, OpenRouter, or local Ollama / LM Studio), showing the recognized text and translation in Chrome's Side Panel. Available in **English** and **Simplified Chinese** (`_locales`).
 
@@ -14,15 +14,16 @@ A privacy-first Chrome extension for **macOS** that performs **on-device OCR** u
 | **Build Tools** | **Xcode Command Line Tools** | Run `xcode-select --install` if `swiftc` is missing |
 | **Node.js** *(tests only)* | **Node.js 20+** | Only needed if you want to run the test suite |
 
-## Features
+## Current Features
 
-- **Right-click web images**: Select **「翻译图片中的内容」** to capture the displayed pixels, run local OCR, and stream the translation into the Side Panel. Includes an `activeTab` visible-tab crop fallback for cross-origin images without re-fetching the image URL.
-- **Upload, drag-and-drop, or paste screenshots**: Drop an image, pick a file, or paste a macOS region screenshot (`⌃⇧⌘4`) directly into the Side Panel.
-- **On-device OCR & OCR-only mode**: Text recognition runs locally on your Mac via Apple `Vision`. You can switch to **OCR-only (「仅识别」)** mode at any time so nothing leaves your device.
-- **Smart same-language skip**: Uses Apple's `NaturalLanguage` (`NLLanguageRecognizer`) locally to avoid unnecessary API calls when the recognized text already matches your target language (while keeping `zh-Hans` ↔ `zh-Hant` active).
-- **Session-only LRU cache**: Caches OCR results, translations, and supported Vision languages in memory / `chrome.storage.session` only—never persisted to disk.
-- **OpenAI-compatible providers & local LLMs**: Defaults to DeepSeek (`deepseek-flash`), and supports configuring any OpenAI-compatible HTTPS endpoint (e.g. OpenAI, OpenRouter) or local loopback server (`http://127.0.0.1:11434/v1` for Ollama, `http://127.0.0.1:1234/v1` for LM Studio) plus custom model names.
+- **Right-click web images**: Select **「翻译图片中的内容」** / **Translate Text in Image** to capture the displayed pixels, run local OCR, and stream the translation into the Side Panel. Handles stacked/lazy `<img>` elements and falls back to an `activeTab` visible-tab crop for cross-origin images without re-fetching the image URL.
+- **Upload, drag-and-drop, or paste screenshots**: Drop an image onto the Side Panel, pick a file, click **Paste Image**, or paste a macOS region screenshot (`⌃⇧⌘4` + `⌘V`).
+- **On-device OCR & OCR-only mode**: Text recognition runs locally on your Mac via Apple `Vision`. Switch to **OCR Only (「仅识别」)** at any time so nothing leaves your device.
+- **Smart same-language skip**: Uses Apple's `NaturalLanguage` (`NLLanguageRecognizer`) locally to return recognized text directly without an API call when it already matches your target language (while keeping `zh-Hans` ↔ `zh-Hant` translation active).
+- **19+ target languages**: Built-in dropdown for 19 common target languages plus custom BCP 47 language code entry (e.g., `en-US`, `pt-BR`).
+- **OpenAI-compatible providers & local LLMs**: Defaults to DeepSeek (`deepseek-flash`), and supports any OpenAI-compatible HTTPS endpoint (OpenAI, OpenRouter, etc.) or local loopback server (`http://127.0.0.1:11434/v1` for Ollama, `http://127.0.0.1:1234/v1` for LM Studio) with configurable model names.
 - **Bilingual UI (i18n)**: Follows Chrome's UI language (`en` / `zh_CN`) via `_locales` and lets you switch the interface language in Settings.
+- **Session-only LRU cache**: Caches OCR results, translations, and supported Vision languages in memory / `chrome.storage.session` only—never persisted to disk.
 - **System Keychain storage**: Your API key is stored in macOS Keychain (`Local Image Translator — DeepSeek (manual)`), never in Chrome extension storage. (Optional for unauthenticated local loopback endpoints.)
 
 ## Installation
@@ -42,9 +43,9 @@ A privacy-first Chrome extension for **macOS** that performs **on-device OCR** u
    - Click **Load unpacked** and select the [`extension/`](extension) directory from this repository.
    - Whenever you update the extension, click **Reload** on the extension card and **refresh any open tabs**.
 
-3. **Configure your DeepSeek API key (for translation mode):**
-   - Click the extension icon to open the Side Panel, then open **设置** (Options) and enter your DeepSeek API key.
-   - Or store it from the terminal:
+3. **Configure your translation service & API key:**
+   - Click the extension icon to open the Side Panel, then open **Settings / 设置** to pick your target language, service URL, model, and API key.
+   - Or store the API key from the terminal:
 
      ```sh
      ./scripts/set-deepseek-key.sh
@@ -54,13 +55,13 @@ A privacy-first Chrome extension for **macOS** that performs **on-device OCR** u
 
 ## Site Access & Privacy
 
-- **Local OCR**: Images are decoded and recognized locally on macOS and are never uploaded.
-- **Translation**: When translation is enabled, only the recognized text, target language tag, and translation instructions are sent to `https://api.deepseek.com/chat/completions`.
+- **Local OCR & language detection**: Images are decoded and recognized locally on macOS and are never uploaded.
+- **Translation**: When translation is enabled, only the recognized text, target language tag, and translation instructions are sent to your configured translation endpoint.
 - **No URL re-fetching**: Right-click reads only the already-rendered pixels from the active tab. You can restrict site access anytime in Chrome's extension details page and still use upload, drag-and-drop, or screenshot paste (`⌃⇧⌘4`).
 
 ## Project Structure
 
-- [`extension/`](extension) — Chrome MV3 extension (service worker, content script, Side Panel, Options UI, session cache)
+- [`extension/`](extension) — Chrome MV3 extension (service worker, content script, Side Panel, Options UI, i18n `_locales`, session cache)
 - [`native/`](native) — Swift Native Messaging host (`Vision` OCR, `NaturalLanguage` detection, `Security` Keychain, `URLSession` streaming)
 - [`scripts/`](scripts) — Build, install, Keychain CLI helper, test, and uninstall scripts
 - [`tests/`](tests) — Node unit tests, native host integration tests, and isolated Chrome E2E tests
@@ -70,7 +71,7 @@ A privacy-first Chrome extension for **macOS** that performs **on-device OCR** u
 ## Development & Testing
 
 ```sh
-# Fast JS unit tests (config, protocol, session cache, extension ID check)
+# Fast JS unit tests (config, protocol, session cache, i18n, extension ID check)
 npm test
 
 # Swift native host + Vision OCR + Keychain + loopback translation tests
@@ -90,7 +91,7 @@ npm run test:chrome-menu
 
    ```sh
    ./scripts/uninstall.sh
-   # Or also remove the saved DeepSeek API key from macOS Keychain:
+   # Or also remove the saved API key from macOS Keychain:
    ./scripts/uninstall.sh --delete-key
    ```
 
