@@ -2,7 +2,8 @@ import { HOST, MAX_TRANSLATION_BYTES } from "./config.js";
 
 const terminals = {
   languages: "languages", ocr: "ocr", translate: "done",
-  key_status: "key_status", set_key: "key_status"
+  key_status: "key_status", set_key: "key_status",
+  test_connection: "test_connection"
 };
 
 export function nativeRequest(request, { signal, onDelta = () => {} } = {}) {
@@ -26,7 +27,7 @@ export function nativeRequest(request, { signal, onDelta = () => {} } = {}) {
     const onAbort = () => finish(new DOMException("Aborted", "AbortError"));
     const timer = setTimeout(
       () => finish(new Error("native_timeout")),
-      command === "translate" ? 145_000 : command === "ocr" ? 60_000 : 15_000
+      command === "translate" ? 145_000 : command === "ocr" ? 60_000 : command === "test_connection" ? 25_000 : 15_000
     );
 
     function finish(error, value) {
@@ -59,6 +60,7 @@ export function nativeRequest(request, { signal, onDelta = () => {} } = {}) {
       } else if (message.type === terminals[command]) {
         const valid = message.type === "done" ||
           (message.type === "key_status" && typeof message.configured === "boolean") ||
+          (message.type === "test_connection" && typeof message.ok === "boolean") ||
           (message.type === "ocr" && typeof message.text === "string") ||
           (message.type === "languages" && Array.isArray(message.languages) &&
             message.languages.every(language => typeof language === "string"));

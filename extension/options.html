@@ -21,25 +21,19 @@
       <select id="target" disabled></select>
       <input id="target-custom" type="text" maxlength="63" spellcheck="false" placeholder="en-US" aria-describedby="target-help" hidden disabled>
       <small id="target-help" class="muted" data-i18n="targetHelp">选择目标语言，或选「自定义语言代码」输入如 en-US。</small>
-      <label for="api-base-url" data-i18n="labelApiBaseUrl">API 地址（OpenAI 兼容）</label>
-      <input id="api-base-url" type="url" value="https://api.deepseek.com" required maxlength="512" list="api-base-urls" spellcheck="false" aria-describedby="api-base-url-help" disabled>
-      <datalist id="api-base-urls">
-        <option value="https://api.deepseek.com" label="DeepSeek"></option>
-        <option value="https://api.openai.com/v1" label="OpenAI"></option>
-        <option value="https://openrouter.ai/api/v1" label="OpenRouter"></option>
-        <option value="http://127.0.0.1:11434/v1" label="Ollama (local)"></option>
-        <option value="http://127.0.0.1:1234/v1" label="LM Studio (local)"></option>
-      </datalist>
-      <small id="api-base-url-help" class="muted" data-i18n="apiBaseUrlHelp">支持 DeepSeek、OpenAI、OpenRouter 或本机 Ollama / LM Studio 等兼容接口。</small>
-      <label for="model" data-i18n="labelModel">模型名称</label>
-      <input id="model" type="text" value="deepseek-flash" required maxlength="128" list="models" spellcheck="false" disabled>
-      <datalist id="models">
-        <option value="deepseek-flash" label="DeepSeek Flash"></option>
-        <option value="deepseek-chat" label="DeepSeek Chat"></option>
-        <option value="gpt-4o-mini" label="OpenAI GPT-4o mini"></option>
-        <option value="gpt-4.1-mini" label="OpenAI GPT-4.1 mini"></option>
-        <option value="qwen2.5:7b" label="Ollama Qwen 2.5 7B"></option>
-      </datalist>
+
+      <label for="provider-preset" data-i18n="labelProviderPreset">服务预设</label>
+      <select id="provider-preset" disabled></select>
+
+      <div id="api-base-url-fields" class="form" hidden>
+        <label for="api-base-url" data-i18n="labelApiBaseUrl">服务地址</label>
+        <input id="api-base-url" type="url" value="https://api.deepseek.com" maxlength="512" spellcheck="false" placeholder="https://api.openai.com/v1" aria-describedby="api-base-url-help" disabled>
+        <small id="api-base-url-help" class="muted" data-i18n="apiBaseUrlHelp">填写云端或本机翻译服务的基础地址。</small>
+      </div>
+
+      <label for="model-preset" data-i18n="labelModel">模型名称</label>
+      <select id="model-preset" disabled></select>
+      <input id="model" type="text" value="deepseek-flash" maxlength="128" spellcheck="false" placeholder="gpt-4o-mini" hidden disabled>
     </div>
     <label for="ocrLanguage" data-i18n="labelOcrLanguage">识别语言</label>
     <select id="ocrLanguage"><option value="auto" data-i18n="ocrAuto">自动检测</option></select>
@@ -57,14 +51,18 @@
     </div>
   </form>
   <section id="translation-key" class="surface form" aria-labelledby="api-heading" hidden>
-    <h2 id="api-heading" data-i18n="apiHeading">翻译服务（OpenAI 兼容）</h2>
-    <p class="muted" data-i18n="apiDescription">翻译时会将当前图片中识别出的文字发送给所配置的 OpenAI 兼容接口。</p>
+    <h2 id="api-heading" data-i18n="apiHeading">翻译服务</h2>
+    <p class="muted" data-i18n="apiDescription">翻译时，仅将当前图片识别出的文字发送至所配置的翻译服务。</p>
     <label for="api-key" data-i18n="labelApiKey">API 密钥</label>
     <input id="api-key" type="password" autocomplete="off" spellcheck="false" maxlength="512" aria-describedby="key-help">
-    <small id="key-help" class="muted" data-i18n="keyHelp">密钥保存在 macOS 钥匙串；本机 Ollama 等无需认证的服务可留空。</small>
+    <small id="key-help" class="muted" data-i18n="keyHelp">密钥安全保存在本机；无需认证的本机服务可留空。</small>
     <div class="actions">
       <button id="save-key" class="primary" type="button" data-i18n="btnSaveKey" disabled>保存密钥</button>
       <p id="key-status" role="status" aria-live="polite" data-i18n="keyStatusChecking">正在检查密钥状态…</p>
+    </div>
+    <div class="actions">
+      <button id="test-connection" type="button" data-i18n="btnTestConnection" disabled>测试连接</button>
+      <p id="test-status" role="status" aria-live="polite"></p>
     </div>
   </section>
   <script type="module" src="options.js"></script>

@@ -76,4 +76,9 @@ test("handles abort, invalid messages, missing host and native errors", async ()
   const reply = nativeRequest({ command: "translate" });
   failed.send({ v: 1, type: "error", code: "missing_key" });
   await assert.rejects(reply, /missing_key/);
+
+  const checked = connect();
+  const testReply = nativeRequest({ command: "test_connection", apiBaseUrl: "https://api.openai.com/v1", model: "gpt-4o-mini" });
+  checked.send({ v: 1, type: "test_connection", ok: true });
+  assert.deepEqual(await testReply, { v: 1, type: "test_connection", ok: true });
 });

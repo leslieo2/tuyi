@@ -61,6 +61,9 @@ struct ImageTranslatorHost {
             case "translate":
                 try await translate(request) { try send(Reply(type: "delta", text: $0)) }
                 try send(Reply(type: "done"))
+            case "test_connection":
+                try await testConnection(request)
+                try send(Reply(type: "test_connection", ok: true))
             default:
                 throw HostError("invalid_request")
             }

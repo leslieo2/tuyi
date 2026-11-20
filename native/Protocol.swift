@@ -30,6 +30,7 @@ struct Reply: Encodable {
     var text: String? = nil
     var languages: [String]? = nil
     var configured: Bool? = nil
+    var ok: Bool? = nil
 }
 
 struct HostError: Error {

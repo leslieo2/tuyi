@@ -135,6 +135,38 @@ test("OpenAI-compatible models omit DeepSeek thinking parameter", async () => {
   }
 });
 
+test("test_connection validates endpoint, handles HTTP errors, and returns ok on success", async () => {
+  assert.deepEqual(await ask({
+    command: "test_connection", apiBaseUrl: "http://example.com/v1", model: "gpt-4o-mini"
+  }), error("invalid_request"));
+
+  let trial = 0;
+  let received;
+  const service = await loopback(async (req, res) => {
+    received = await body(req);
+    trial++;
+    if (trial === 1) {
+      res.writeHead(401).end();
+      return;
+    }
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ choices: [{ message: { content: "OK" }, finish_reason: "stop" }] }));
+  });
+  try {
+    assert.deepEqual(await ask({
+      command: "test_connection", apiBaseUrl: "https://api.openai.com/v1", model: "gpt-4o-mini"
+    }, { port: service.port }), error("http_auth"));
+    assert.deepEqual(await ask({
+      command: "test_connection", apiBaseUrl: "https://api.openai.com/v1", model: "gpt-4o-mini"
+    }, { port: service.port }), [{ v: 1, type: "test_connection", ok: true }]);
+    assert.equal(received.stream, false);
+    assert.equal(received.model, "gpt-4o-mini");
+    assert.equal(Object.hasOwn(received, "thinking"), false);
+  } finally {
+    await service.close();
+  }
+});
+
 test("stopped loopback fixture (real connection failure)", async () => {
   const service = await loopback((_req, res) => res.end());
   await service.close();
