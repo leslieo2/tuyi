@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/leslieo2/tuyi/compare/v1.1.0...v1.2.0) (2026-11-20)
+
+
+### Features
+
+* add service/model presets and Test Connection in Settings ([3dfeb9d](https://github.com/leslieo2/tuyi/commit/3dfeb9ddc9f552f879382d17fccad002a18f5976))
+
 # [1.1.0](https://github.com/leslieo2/tuyi/compare/v1.0.6...v1.1.0) (2026-11-19)
 
 
