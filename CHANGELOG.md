@@ -1,3 +1,10 @@
+## [1.4.2](https://github.com/leslieo2/tuyi/compare/v1.4.1...v1.4.2) (2026-11-22)
+
+
+### Bug Fixes
+
+* correct image job races, IPv6 endpoints, and locale loading ([3be2863](https://github.com/leslieo2/tuyi/commit/3be28630ec7d14ee904f58d0ea54a235ad4c9f22))
+
 ## [1.4.1](https://github.com/leslieo2/tuyi/compare/v1.4.0...v1.4.1) (2026-11-22)
 
 

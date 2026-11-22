@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "__MSG_extName__",
   "short_name": "__MSG_extShortName__",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "minimum_chrome_version": "123",
   "default_locale": "zh_CN",
   "description": "__MSG_extDescription__",
@@ -23,10 +23,7 @@
       "match_origin_as_fallback": true
     }
   ],
-  "background": {
-    "service_worker": "background.js",
-    "type": "module"
-  },
+  "background": { "service_worker": "background.js", "type": "module" },
   "action": {
     "default_title": "__MSG_actionTitle__",
     "default_icon": {
@@ -36,11 +33,6 @@
       "128": "icons/icon-128.png"
     }
   },
-  "side_panel": {
-    "default_path": "panel.html"
-  },
-  "options_ui": {
-    "page": "options.html",
-    "open_in_tab": true
-  }
+  "side_panel": { "default_path": "panel.html" },
+  "options_ui": { "page": "options.html", "open_in_tab": true }
 }
