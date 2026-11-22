@@ -1,3 +1,10 @@
+## [1.4.1](https://github.com/leslieo2/tuyi/compare/v1.4.0...v1.4.1) (2026-11-22)
+
+
+### Bug Fixes
+
+* prevent stale session cache reads after clearing ([a9fc597](https://github.com/leslieo2/tuyi/commit/a9fc59739b4e8c6be98a17d875e6e7242d686e51))
+
 # [1.4.0](https://github.com/leslieo2/tuyi/compare/v1.3.0...v1.4.0) (2026-11-22)
 
 

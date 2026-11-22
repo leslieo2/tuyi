@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "__MSG_extName__",
   "short_name": "__MSG_extShortName__",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "minimum_chrome_version": "123",
   "default_locale": "zh_CN",
   "description": "__MSG_extDescription__",
@@ -13,11 +13,22 @@
     "128": "icons/icon-128.png"
   },
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAzlslIt9T9wnNa5L/kMeEKhbHA3Nf1pTIK6MHYRIiJAtSRnxtJFIApSOPDFYGbIXpFlroMUHj4K46EHUMMOYWU3LBcW6J4+yQ/A6Ph2sHvMX+6dSczzmCUDgd3PeSwlz4sOaGj006RK0TDvKgawPg/L6x8+y1EFzQ+IMlh7rgtTXsuJVvPUgc361P5/TRjjLGhinluKD2B5xTshOmooYrJSOwk/GTwVK8tSE01MPysbbOblc/STEtaH8Mnn9qVeHWsEqV+rJ1YWpymQnZmJtmvqX0nQwjvJBe7+sfl4HjcRfN+UT2Jm+qWqqabTnJlHGZu90XASz6GMXMJtC4HfdTqwIDAQAB",
-  "permissions": ["activeTab", "contextMenus", "sidePanel", "nativeMessaging", "storage"],
+  "permissions": [
+    "activeTab",
+    "contextMenus",
+    "sidePanel",
+    "nativeMessaging",
+    "storage"
+  ],
   "content_scripts": [
     {
-      "matches": ["http://*/*", "https://*/*"],
-      "js": ["image-selection.js"],
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": [
+        "image-selection.js"
+      ],
       "run_at": "document_start",
       "all_frames": true,
       "match_origin_as_fallback": true
