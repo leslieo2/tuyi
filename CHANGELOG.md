@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/leslieo2/tuyi/compare/v1.3.0...v1.4.0) (2026-11-22)
+
+
+### Features
+
+* improve translation language prompting and add session diagnostics ([5211745](https://github.com/leslieo2/tuyi/commit/52117456f4a0ce929f6ffdc533954b86f117904c))
+
 # [1.3.0](https://github.com/leslieo2/tuyi/compare/v1.2.0...v1.3.0) (2026-11-22)
 
 
