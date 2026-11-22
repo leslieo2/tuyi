@@ -58,3 +58,53 @@ test("SessionCache enforces LRU eviction, hydrates, resets, and clears session s
     delete globalThis.chrome;
   }
 });
+
+test("SessionCache shares a pending storage read and discards it after a reset", async () => {
+  const key = "cache_ocr";
+  const storedEntries = [["image", "recognized text"]];
+  let entries = storedEntries;
+  let finishRead;
+  globalThis.chrome = {
+    storage: {
+      session: {
+        get() {
+          const snapshot = entries;
+          return new Promise((resolve) => {
+            finishRead = () => resolve({ [key]: snapshot });
+          });
+        },
+        async set(values) {
+          entries = values[key];
+        },
+        async remove() {
+          entries = undefined;
+        },
+      },
+    },
+  };
+
+  try {
+    const openPanelCache = new SessionCache(key);
+    const staleLookup = openPanelCache.get("image");
+    const staleWrite = openPanelCache.set("other-image", "other recognized text");
+    await clearAllCaches();
+    openPanelCache.reset();
+    finishRead();
+    assert.equal(await staleLookup, undefined);
+    await staleWrite;
+    assert.equal(entries, undefined);
+
+    const freshLookup = openPanelCache.get("image");
+    finishRead();
+    assert.equal(await freshLookup, undefined);
+
+    entries = storedEntries;
+    const cache = new SessionCache(key);
+    const first = cache.get("image");
+    const second = cache.get("image");
+    finishRead();
+    assert.deepEqual(await Promise.all([first, second]), ["recognized text", "recognized text"]);
+  } finally {
+    delete globalThis.chrome;
+  }
+});

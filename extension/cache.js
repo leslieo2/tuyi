@@ -17,22 +17,25 @@ export class SessionCache {
   #limit;
   #storageKey;
   #map = new Map();
-  #hydrated = false;
+  #hydration;
 
   constructor(storageKey, limit = 30) {
     this.#storageKey = storageKey;
     this.#limit = limit;
   }
 
-  async #hydrate() {
-    if (this.#hydrated) return;
-    this.#hydrated = true;
+  #hydrate() {
+    return (this.#hydration ??= this.#loadEntries());
+  }
+
+  async #loadEntries() {
     const storage = globalThis.chrome?.storage?.session;
     if (!storage) return;
+    const map = this.#map;
     try {
       const result = await storage.get(this.#storageKey);
       const entries = result?.[this.#storageKey];
-      if (!Array.isArray(entries)) return;
+      if (map !== this.#map || !Array.isArray(entries)) return;
       for (const entry of entries) {
         if (Array.isArray(entry) && typeof entry[0] === "string" && typeof entry[1] === "string") {
           this.#touch(entry[0], entry[1]);
@@ -59,22 +62,23 @@ export class SessionCache {
   }
 
   reset() {
-    this.#map.clear();
-    this.#hydrated = false;
+    // Replacing the map lets pending operations detect that they have been invalidated.
+    this.#map = new Map();
+    this.#hydration = undefined;
   }
 
   async clear() {
-    this.#map.clear();
-    this.#hydrated = true;
-    const storage = globalThis.chrome?.storage?.session;
-    if (!storage?.remove) return;
-    await storage.remove(this.#storageKey);
+    this.reset();
+    const removal = globalThis.chrome?.storage?.session?.remove?.(this.#storageKey);
+    this.#hydration = Promise.resolve(removal).catch(() => {});
+    await removal;
   }
 
   async get(key) {
+    const map = this.#map;
     await this.#hydrate();
-    if (!this.#map.has(key)) return undefined;
-    const value = this.#map.get(key);
+    if (map !== this.#map || !map.has(key)) return undefined;
+    const value = map.get(key);
     this.#touch(key, value);
     this.#persist();
     return value;
@@ -82,7 +86,9 @@ export class SessionCache {
 
   async set(key, value) {
     if (typeof value !== "string") return;
+    const map = this.#map;
     await this.#hydrate();
+    if (map !== this.#map) return;
     this.#touch(key, value);
     this.#persist();
   }
