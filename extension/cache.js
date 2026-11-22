@@ -1,5 +1,13 @@
 const encoder = new TextEncoder();
 
+export const CACHE_KEYS = Object.freeze(["cache_ocr", "cache_translation", "cache_languages"]);
+
+export async function clearAllCaches() {
+  const storage = globalThis.chrome?.storage?.session;
+  if (!storage?.remove) return;
+  await storage.remove([...CACHE_KEYS]);
+}
+
 export async function sha256(text) {
   const digest = await crypto.subtle.digest("SHA-256", encoder.encode(text));
   return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, "0")).join("");
@@ -48,6 +56,19 @@ export class SessionCache {
     const storage = globalThis.chrome?.storage?.session;
     if (!storage) return;
     void storage.set({ [this.#storageKey]: [...this.#map.entries()] }).catch(() => {});
+  }
+
+  reset() {
+    this.#map.clear();
+    this.#hydrated = false;
+  }
+
+  async clear() {
+    this.#map.clear();
+    this.#hydrated = true;
+    const storage = globalThis.chrome?.storage?.session;
+    if (!storage?.remove) return;
+    await storage.remove(this.#storageKey);
   }
 
   async get(key) {

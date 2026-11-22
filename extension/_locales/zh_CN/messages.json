@@ -92,6 +92,12 @@
   "keyStatusSaved": { "message": "密钥已保存。" },
   "keyStatusSaveTimeout": { "message": "保存密钥超时，请检查系统钥匙串后重试。" },
 
+  "cacheHeading": { "message": "缓存" },
+  "cacheDescription": { "message": "识别和翻译结果仅临时缓存在当前浏览器会话中。" },
+  "btnClearCache": { "message": "清除缓存" },
+  "statusCacheCleared": { "message": "已清除缓存。" },
+  "statusCacheClearFailed": { "message": "清除缓存失败，请重试。" },
+
   "langZhHans": { "message": "简体中文" },
   "langZhHant": { "message": "繁体中文" },
   "langEn": { "message": "英语" },

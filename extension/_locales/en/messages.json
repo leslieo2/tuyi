@@ -92,6 +92,12 @@
   "keyStatusSaved": { "message": "Key saved." },
   "keyStatusSaveTimeout": { "message": "Timed out saving key. Check macOS Keychain and retry." },
 
+  "cacheHeading": { "message": "Cache" },
+  "cacheDescription": { "message": "Recognized text and translations are cached only for the current browser session." },
+  "btnClearCache": { "message": "Clear Cache" },
+  "statusCacheCleared": { "message": "Cache cleared." },
+  "statusCacheClearFailed": { "message": "Failed to clear cache. Please try again." },
+
   "langZhHans": { "message": "Simplified Chinese" },
   "langZhHant": { "message": "Traditional Chinese" },
   "langEn": { "message": "English" },

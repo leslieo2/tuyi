@@ -255,6 +255,11 @@ for (const [id, input] of [["copy-original", original], ["copy-translation", tra
 }
 
 chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === "session") {
+    if (changes.cache_ocr && changes.cache_ocr.newValue === undefined) ocrCache.reset();
+    if (changes.cache_translation && changes.cache_translation.newValue === undefined) translationCache.reset();
+    return;
+  }
   if (area === "local" && (changes.mode || changes.provider || changes.target ||
       changes.apiBaseUrl || changes.model || changes.uiLanguage)) {
     void refreshRoute().catch(() => {});

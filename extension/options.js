@@ -1,3 +1,4 @@
+import { clearAllCaches } from "./cache.js";
 import { getSettings, normalizeApiBaseUrl, normalizeModel, targetLanguage } from "./config.js";
 import { errorText } from "./errors.js";
 import { applyI18n, displayLocaleTag, initI18n, t } from "./i18n.js";
@@ -21,6 +22,8 @@ const saveKey = byId("save-key");
 const keyStatus = byId("key-status");
 const testConnectionBtn = byId("test-connection");
 const testStatus = byId("test-status");
+const clearCacheBtn = byId("clear-cache");
+const cacheStatus = byId("cache-status");
 
 const TARGET_PRESETS = [
   "zh-Hans", "zh-Hant", "en", "ja", "ko", "fr", "de", "es",
@@ -273,6 +276,19 @@ testConnectionBtn.onclick = async () => {
       testingController = undefined;
       testConnectionBtn.disabled = mode.value !== "translate";
     }
+  }
+};
+
+clearCacheBtn.onclick = async () => {
+  if (clearCacheBtn.disabled) return;
+  clearCacheBtn.disabled = true;
+  try {
+    await clearAllCaches();
+    showStatus(cacheStatus, t("statusCacheCleared"), "done");
+  } catch {
+    showStatus(cacheStatus, t("statusCacheClearFailed"), "error");
+  } finally {
+    clearCacheBtn.disabled = false;
   }
 };
 
