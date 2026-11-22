@@ -7,10 +7,13 @@ import { spawn } from "node:child_process";
 
 export const root = resolve(import.meta.dirname, "..");
 export const manifest = JSON.parse(readFileSync(resolve(root, "extension/manifest.json"), "utf8"));
-export const id = createHash("sha256").update(Buffer.from(manifest.key, "base64")).digest("hex")
-  .slice(0, 32).replace(/./g, digit => String.fromCharCode(97 + parseInt(digit, 16)));
+export const id = createHash("sha256")
+  .update(Buffer.from(manifest.key, "base64"))
+  .digest("hex")
+  .slice(0, 32)
+  .replace(/./g, (digit) => String.fromCharCode(97 + parseInt(digit, 16)));
 export const origin = `chrome-extension://${id}/`;
-export const fixture = name => resolve(root, ".build/fixtures", name + ".png");
+export const fixture = (name) => resolve(root, ".build/fixtures", `${name}.png`);
 
 export function frame(data) {
   const payload = Buffer.isBuffer(data) ? data : Buffer.from(JSON.stringify(data));
@@ -19,7 +22,11 @@ export function frame(data) {
   return Buffer.concat([header, payload]);
 }
 
-export function hostJob(binary, buffer, { onReply = () => {}, closeAfterFirst = false, timeout = 70_000, port } = {}) {
+export function hostJob(
+  binary,
+  buffer,
+  { onReply = () => {}, closeAfterFirst = false, timeout = 70_000, port } = {},
+) {
   const env = { ...process.env };
   delete env.DEEPSEEK_API_KEY;
   delete env.IMAGE_TRANSLATOR_TEST_PORT;
@@ -30,7 +37,7 @@ export function hostJob(binary, buffer, { onReply = () => {}, closeAfterFirst = 
   let pending = Buffer.alloc(0);
   let exited = false;
   child.stdin.on("error", () => {});
-  child.stdout.on("data", chunk => {
+  child.stdout.on("data", (chunk) => {
     pending = Buffer.concat([pending, chunk]);
     while (pending.length >= 4) {
       const length = pending.readUInt32LE();
@@ -47,15 +54,18 @@ export function hostJob(binary, buffer, { onReply = () => {}, closeAfterFirst = 
     }
   });
   const timer = setTimeout(() => child.kill("SIGKILL"), timeout);
-  const done = once(child, "close").then(([code, signal]) => {
-    exited = true;
-    clearTimeout(timer);
-    if (code !== 0 || signal || pending.length) throw new Error("Native test job did not exit cleanly");
-    return replies;
-  }).finally(() => {
-    clearTimeout(timer);
-    if (!exited) child.kill("SIGKILL");
-  });
+  const done = once(child, "close")
+    .then(([code, signal]) => {
+      exited = true;
+      clearTimeout(timer);
+      if (code !== 0 || signal || pending.length)
+        throw new Error("Native test job did not exit cleanly");
+      return replies;
+    })
+    .finally(() => {
+      clearTimeout(timer);
+      if (!exited) child.kill("SIGKILL");
+    });
   child.stdin.write(buffer);
   return { child, done };
 }
@@ -72,8 +82,10 @@ export async function loopback(handler) {
     port: server.address().port,
     async close() {
       server.closeAllConnections();
-      await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
-    }
+      await new Promise((done, reject) =>
+        server.close((error) => (error ? reject(error) : done())),
+      );
+    },
   };
 }
 

@@ -27,9 +27,15 @@ private struct Completion: Decodable {
 
     struct ErrorMarker: Decodable {}
     struct Choice: Decodable {
-        let finish_reason: String?
+        let finishReason: String?
         let delta: Content?
         let message: Content?
+
+        enum CodingKeys: String, CodingKey {
+            case finishReason = "finish_reason"
+            case delta
+            case message
+        }
     }
     struct Content: Decodable { let content: String? }
 }
@@ -81,9 +87,9 @@ private let nonLatinTargetCodes: Set<String> = [
 ]
 
 private let vietnameseDistinctiveScalars: Set<UInt32> = [
-    0x0102, 0x0103, // Ă, ă
-    0x0110, 0x0111, // Đ, đ
-    0x01A0, 0x01A1, // Ơ, ơ
+    0x0102, 0x0103,  // Ă, ă
+    0x0110, 0x0111,  // Đ, đ
+    0x01A0, 0x01A1,  // Ơ, ơ
     0x01AF, 0x01B0  // Ư, ư
 ]
 
@@ -108,8 +114,8 @@ private func matchesTargetLanguage(_ detected: String, target: String) -> Bool {
 
 private func isLatinLetter(_ scalar: UnicodeScalar) -> Bool {
     let v = scalar.value
-    return (0x0041...0x005A).contains(v) || (0x0061...0x007A).contains(v) ||
-        (0x00C0...0x024F).contains(v) || (0x1E00...0x1EFF).contains(v)
+    return (0x0041...0x005A).contains(v) || (0x0061...0x007A).contains(v) || (0x00C0...0x024F).contains(v)
+        || (0x1E00...0x1EFF).contains(v)
 }
 
 private func extractLatinRuns(_ text: String) -> [String] {
@@ -173,9 +179,11 @@ private func analyzeLanguage(_ text: String, target: String) -> LanguageAnalysis
         guard letterCount >= 4 else { continue }
         let lineRecognizer = NLLanguageRecognizer()
         lineRecognizer.processString(line)
-        if let (lineLang, lineConf) = lineRecognizer.languageHypotheses(withMaximum: 2).max(by: { $0.value < $1.value }),
-           lineLang != .undetermined, lineConf >= 0.70,
-           !matchesTargetLanguage(lineLang.rawValue, target: target) {
+        if let (lineLang, lineConf) = lineRecognizer.languageHypotheses(withMaximum: 2).max(by: { $0.value < $1.value }
+        ),
+            lineLang != .undetermined, lineConf >= 0.70,
+            !matchesTargetLanguage(lineLang.rawValue, target: target)
+        {
             return LanguageAnalysis(
                 detected: detected, confidence: confidence,
                 secondDetected: secondDetected, secondConfidence: secondConfidence,
@@ -201,13 +209,16 @@ private func analyzeLanguage(_ text: String, target: String) -> LanguageAnalysis
             guard words.count >= 2, latinLetters >= 6 else { continue }
             let segRecognizer = NLLanguageRecognizer()
             segRecognizer.processString(run)
-            if let (segLang, segConf) = segRecognizer.languageHypotheses(withMaximum: 2).max(by: { $0.value < $1.value }),
-               segLang != .undetermined, segConf >= 0.75,
-               !matchesTargetLanguage(segLang.rawValue, target: target) {
+            if let (segLang, segConf) = segRecognizer.languageHypotheses(withMaximum: 2).max(by: { $0.value < $1.value }
+            ),
+                segLang != .undetermined, segConf >= 0.75,
+                !matchesTargetLanguage(segLang.rawValue, target: target)
+            {
                 return LanguageAnalysis(
                     detected: detected, confidence: confidence,
                     secondDetected: secondDetected, secondConfidence: secondConfidence,
-                    nonTargetLineDetected: segLang.rawValue, isAlreadyTarget: false, skipReason: "mixed_language_segment"
+                    nonTargetLineDetected: segLang.rawValue, isAlreadyTarget: false,
+                    skipReason: "mixed_language_segment"
                 )
             }
         }
@@ -229,7 +240,8 @@ private func targetLanguageLabel(_ tag: String) -> (name: String, full: String) 
     if let mapped = customNames[tag.lowercased()] {
         name = mapped
     } else if let localized = Locale(identifier: "en").localizedString(forIdentifier: tag),
-              localized.caseInsensitiveCompare(tag) != .orderedSame {
+        localized.caseInsensitiveCompare(tag) != .orderedSame
+    {
         name = localized
     } else {
         name = tag
@@ -245,8 +257,9 @@ private func buildTranslationInstruction(target: String, analysis: LanguageAnaly
         let (_, foreignFull) = targetLanguageLabel(foreignLine)
         lead = "Translate all non-\(targetName) text (including \(foreignFull)) in the user message into \(targetFull)."
     } else if let detected = analysis.detected,
-              (analysis.confidence ?? 0) >= 0.70,
-              !matchesTargetLanguage(detected, target: target) {
+        (analysis.confidence ?? 0) >= 0.70,
+        !matchesTargetLanguage(detected, target: target)
+    {
         let (_, sourceFull) = targetLanguageLabel(detected)
         lead = "Translate the user message from \(sourceFull) into \(targetFull)."
     } else {
@@ -270,13 +283,15 @@ private func sanitizedEndpoint(_ url: URL) -> String {
 }
 
 private func resolveEndpoint(_ rawBaseUrl: String?) throws -> (url: URL, isLoopback: Bool) {
-    let candidate = (rawBaseUrl?.trimmingCharacters(in: .whitespacesAndNewlines)).flatMap { $0.isEmpty ? nil : $0 }
+    let candidate =
+        (rawBaseUrl?.trimmingCharacters(in: .whitespacesAndNewlines)).flatMap { $0.isEmpty ? nil : $0 }
         ?? defaultApiBaseUrl
     guard candidate.utf8.count <= 512,
-          var components = URLComponents(string: candidate),
-          components.user == nil, components.password == nil, components.fragment == nil,
-          let scheme = components.scheme?.lowercased(),
-          let host = components.host?.lowercased(), !host.isEmpty else {
+        var components = URLComponents(string: candidate),
+        components.user == nil, components.password == nil, components.fragment == nil,
+        let scheme = components.scheme?.lowercased(),
+        let host = components.host?.lowercased(), !host.isEmpty
+    else {
         throw HostError("invalid_request")
     }
     let isLoopback = loopbackHosts.contains(host)
@@ -297,7 +312,8 @@ private func resolveModel(_ rawModel: String?) throws -> String {
     guard let rawModel else { return defaultModel }
     let trimmed = rawModel.trimmingCharacters(in: .whitespacesAndNewlines)
     guard (1...128).contains(trimmed.utf8.count),
-          !matches(trimmed, #"[\s\u{00}-\u{1f}\u{7f}]"#) else {
+        !matches(trimmed, #"[\s\u{00}-\u{1f}\u{7f}]"#)
+    else {
         throw HostError("invalid_request")
     }
     return trimmed
@@ -331,34 +347,35 @@ private func prepareTransport(
     let endpoint: URL
     let key: String?
     #if IMAGE_TRANSLATOR_TEST
-    if let value = ProcessInfo.processInfo.environment["IMAGE_TRANSLATOR_TEST_PORT"],
-       let port = Int(value), (1...65535).contains(port) {
-        endpoint = URL(string: "http://127.0.0.1:\(port)/chat/completions")!
-        if testKeychainID == nil {
-            key = "synthetic-test-token"
+        if let value = ProcessInfo.processInfo.environment["IMAGE_TRANSLATOR_TEST_PORT"],
+            let port = Int(value), (1...65535).contains(port)
+        {
+            endpoint = URL(string: "http://127.0.0.1:\(port)/chat/completions")!
+            if testKeychainID == nil {
+                key = "synthetic-test-token"
+            } else {
+                do {
+                    key = try deepSeekKey()
+                } catch let hostError as HostError where hostError.code == "missing_key" && isLoopback {
+                    key = nil
+                }
+            }
+            configuration.connectionProxyDictionary = ["HTTPEnable": 0, "HTTPSEnable": 0, "SOCKSEnable": 0]
         } else {
+            _ = try deepSeekKey()
+            throw HostError("test_transport_missing")
+        }
+    #else
+        endpoint = resolvedUrl
+        if isLoopback {
             do {
                 key = try deepSeekKey()
-            } catch let hostError as HostError where hostError.code == "missing_key" && isLoopback {
+            } catch let hostError as HostError where hostError.code == "missing_key" {
                 key = nil
             }
-        }
-        configuration.connectionProxyDictionary = ["HTTPEnable": 0, "HTTPSEnable": 0, "SOCKSEnable": 0]
-    } else {
-        _ = try deepSeekKey()
-        throw HostError("test_transport_missing")
-    }
-    #else
-    endpoint = resolvedUrl
-    if isLoopback {
-        do {
+        } else {
             key = try deepSeekKey()
-        } catch let hostError as HostError where hostError.code == "missing_key" {
-            key = nil
         }
-    } else {
-        key = try deepSeekKey()
-    }
     #endif
 
     return PreparedTransport(
@@ -384,8 +401,9 @@ private func buildChatRequest(
         "temperature": temperature,
         "messages": messages
     ]
-    let thinkingDisabled = transport.configuredEndpoint.host?.lowercased() == deepSeekHost ||
-        transport.model.lowercased().hasPrefix("deepseek")
+    let thinkingDisabled =
+        transport.configuredEndpoint.host?.lowercased() == deepSeekHost
+        || transport.model.lowercased().hasPrefix("deepseek")
     if thinkingDisabled {
         payload["thinking"] = ["type": "disabled"]
     }
@@ -438,9 +456,10 @@ func testConnection(_ input: Request) async throws {
 func translate(_ input: Request, onDelta: (String) throws -> Void) async throws -> DiagnosticsMeta {
     let startedAt = DispatchTime.now().uptimeNanoseconds
     guard let text = input.text, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-          text.utf8.count <= Limits.sourceBytes,
-          let target = input.target, target.utf8.count <= 63,
-          matches(target, #"\A[A-Za-z]{2,8}(?:-[A-Za-z0-9]{1,8})*\z"#) else { throw HostError("invalid_request") }
+        text.utf8.count <= Limits.sourceBytes,
+        let target = input.target, target.utf8.count <= 63,
+        matches(target, #"\A[A-Za-z]{2,8}(?:-[A-Za-z0-9]{1,8})*\z"#)
+    else { throw HostError("invalid_request") }
 
     guard input.cloudConsent == 1 else { throw HostError("cloud_consent") }
 
@@ -562,10 +581,10 @@ private func parseCompletion(
             outputChars += text.count
             try onDelta(text)
         }
-        if let reason = choice.finish_reason {
+        if let reason = choice.finishReason {
             meta.finishReason = reason
         }
-        switch choice.finish_reason {
+        switch choice.finishReason {
         case "length":
             syncStats()
             throw HostError("translation_truncated", meta: meta)
@@ -579,7 +598,7 @@ private func parseCompletion(
 
     if streamed {
         var line = Data()
-        var eventLines = [Data]()
+        var eventLines: [Data] = []
         var eventBytes = 0
         var totalBytes = 0
         var finished = false

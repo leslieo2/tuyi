@@ -29,9 +29,11 @@ func press(_ node: AXUIElement, depth: Int) -> Bool {
 }
 
 var observer: AXObserver?
-let created = AXObserverCreate(pid, { _, element, _, _ in
-    if press(element, depth: 4) { exit(0) }
-}, &observer)
+let created = AXObserverCreate(
+    pid,
+    { _, element, _, _ in
+        if press(element, depth: 4) { exit(0) }
+    }, &observer)
 guard created == .success, let observer else { exit(1) }
 let added = AXObserverAddNotification(observer, application, kAXMenuOpenedNotification as CFString, nil)
 CFRunLoopAddSource(CFRunLoopGetCurrent(), AXObserverGetRunLoopSource(observer), .defaultMode)

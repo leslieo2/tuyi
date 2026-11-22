@@ -3,8 +3,8 @@ let activeLocale = "zh_CN";
 
 export function resolveUiLocale(preference = "auto") {
   if (preference === "zh_CN" || preference === "en") return preference;
-  const browserLang = globalThis.chrome?.i18n?.getUILanguage?.() ??
-    globalThis.navigator?.language ?? "zh-CN";
+  const browserLang =
+    globalThis.chrome?.i18n?.getUILanguage?.() ?? globalThis.navigator?.language ?? "zh-CN";
   return /^zh\b/i.test(browserLang) ? "zh_CN" : "en";
 }
 
@@ -14,7 +14,11 @@ export function displayLocaleTag(uiLocale = activeLocale) {
 
 export async function initI18n(preference = "auto") {
   activeLocale = resolveUiLocale(preference);
-  if (!cache.has(activeLocale) && globalThis.chrome?.runtime?.getURL && typeof fetch === "function") {
+  if (
+    !cache.has(activeLocale) &&
+    globalThis.chrome?.runtime?.getURL &&
+    typeof fetch === "function"
+  ) {
     try {
       const response = await fetch(chrome.runtime.getURL(`_locales/${activeLocale}/messages.json`));
       if (response.ok) cache.set(activeLocale, await response.json());

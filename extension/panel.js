@@ -6,7 +6,7 @@ import { applyI18n, displayLocaleTag, initI18n, t } from "./i18n.js";
 import { readFile, readPageImage } from "./image.js";
 import { nativeRequest } from "./native-client.js";
 
-const byId = id => document.getElementById(id);
+const byId = (id) => document.getElementById(id);
 const original = byId("original");
 const translation = byId("translation");
 const fileInput = byId("file");
@@ -27,8 +27,10 @@ function status(text, state = "idle") {
 
 function renderDiagnostics() {
   const run = diagnostics.latest();
-  if (diagnosticsSummary) diagnosticsSummary.textContent = run ? diagnostics.formatSummary(run, t) : "";
-  if (diagnosticsOutput) diagnosticsOutput.textContent = run ? diagnostics.formatReport(run) : t("diagnosticsEmpty");
+  if (diagnosticsSummary)
+    diagnosticsSummary.textContent = run ? diagnostics.formatSummary(run, t) : "";
+  if (diagnosticsOutput)
+    diagnosticsOutput.textContent = run ? diagnostics.formatReport(run) : t("diagnosticsEmpty");
   if (copyDiagnostics) copyDiagnostics.disabled = !run;
 }
 
@@ -62,46 +64,51 @@ function start(work, { trigger = "unknown" } = {}) {
     trigger,
     stage: "init",
     run: undefined,
-    outcome: undefined
+    outcome: undefined,
   };
   active = job;
   refreshButtons();
   const { signal } = job.controller;
-  void getSettings().then(async settings => {
-    signal.throwIfAborted();
-    await initI18n(settings.uiLanguage);
-    signal.throwIfAborted();
-    job.settings = settings;
-    job.run = diagnostics.startRun({ trigger, settings });
-    renderDiagnostics();
-    refreshButtons();
-    await work(settings, signal, job);
-    signal.throwIfAborted();
-    if (job.run && job.run.outcome === "running") {
-      diagnostics.finishRun(job.run, job.outcome ?? "done");
+  void getSettings()
+    .then(async (settings) => {
+      signal.throwIfAborted();
+      await initI18n(settings.uiLanguage);
+      signal.throwIfAborted();
+      job.settings = settings;
+      job.run = diagnostics.startRun({ trigger, settings });
       renderDiagnostics();
-    }
-  }).catch(error => {
-    if (active === job && !signal.aborted) {
-      if (job.run) {
-        if (error?.meta) {
-          if (job.stage === "ocr") diagnostics.recordOcr(job.run, { cacheHit: false, ...error.meta });
-          else if (job.stage === "translate") diagnostics.recordTranslation(job.run, { cacheHit: false, ...error.meta });
-        }
-        diagnostics.finishRun(job.run, "error", {
-          code: error?.message ?? "native_failed",
-          stage: job.stage
-        });
+      refreshButtons();
+      await work(settings, signal, job);
+      signal.throwIfAborted();
+      if (job.run && job.run.outcome === "running") {
+        diagnostics.finishRun(job.run, job.outcome ?? "done");
         renderDiagnostics();
       }
-      status(errorText(error?.message), "error");
-    }
-  }).finally(() => {
-    if (active === job) {
-      active = undefined;
-      refreshButtons();
-    }
-  });
+    })
+    .catch((error) => {
+      if (active === job && !signal.aborted) {
+        if (job.run) {
+          if (error?.meta) {
+            if (job.stage === "ocr")
+              diagnostics.recordOcr(job.run, { cacheHit: false, ...error.meta });
+            else if (job.stage === "translate")
+              diagnostics.recordTranslation(job.run, { cacheHit: false, ...error.meta });
+          }
+          diagnostics.finishRun(job.run, "error", {
+            code: error?.message ?? "native_failed",
+            stage: job.stage,
+          });
+          renderDiagnostics();
+        }
+        status(errorText(error?.message), "error");
+      }
+    })
+    .finally(() => {
+      if (active === job) {
+        active = undefined;
+        refreshButtons();
+      }
+    });
 }
 
 async function translate(settings, signal, job, { useCache = false } = {}) {
@@ -127,7 +134,7 @@ async function translate(settings, signal, job, { useCache = false } = {}) {
         model: settings.model,
         outputChars: cached.length,
         sameAsOriginal: cached.trim() === source.trim(),
-        durationMs: Math.round(performance.now() - startedMs)
+        durationMs: Math.round(performance.now() - startedMs),
       });
       renderDiagnostics();
       refreshButtons();
@@ -136,18 +143,21 @@ async function translate(settings, signal, job, { useCache = false } = {}) {
     }
   }
   status(t("statusTranslating"), "busy");
-  const reply = await nativeRequest({ ...translationRequest(settings, source), diagnostics: true }, {
-    signal,
-    onDelta: text => {
-      translation.value += text;
-      refreshButtons();
-    }
-  });
+  const reply = await nativeRequest(
+    { ...translationRequest(settings, source), diagnostics: true },
+    {
+      signal,
+      onDelta: (text) => {
+        translation.value += text;
+        refreshButtons();
+      },
+    },
+  );
   signal.throwIfAborted();
   diagnostics.recordTranslation(job.run, {
     cacheHit: false,
     ...(reply?.meta ?? {}),
-    sameAsOriginal: translation.value.trim() === source.trim()
+    sameAsOriginal: translation.value.trim() === source.trim(),
   });
   renderDiagnostics();
   if (translation.value) await translationCache.set(cacheKey, translation.value);
@@ -158,14 +168,12 @@ async function recognizeImage(acquire, language, signal, job) {
   job.stage = "image";
   const imageStart = performance.now();
   status(t("statusReadingImage"), "busy");
-  const acquisition = acquire(signal);
-  acquire = undefined;
-  const image = await acquisition;
+  const image = await acquire(signal);
   signal.throwIfAborted();
   diagnostics.recordImage(job.run, {
     source: job.trigger,
     bytes: Math.floor((image.length * 3) / 4),
-    durationMs: Math.round(performance.now() - imageStart)
+    durationMs: Math.round(performance.now() - imageStart),
   });
   renderDiagnostics();
 
@@ -180,18 +188,21 @@ async function recognizeImage(acquire, language, signal, job) {
       cacheHit: true,
       language,
       charCount: cached.length,
-      durationMs: Math.round(performance.now() - ocrStart)
+      durationMs: Math.round(performance.now() - ocrStart),
     });
     renderDiagnostics();
     return { text: cached };
   }
   status(t("statusRecognizing"), "busy");
-  const result = await nativeRequest({ command: "ocr", image, language, diagnostics: true }, { signal });
+  const result = await nativeRequest(
+    { command: "ocr", image, language, diagnostics: true },
+    { signal },
+  );
   signal.throwIfAborted();
   diagnostics.recordOcr(job.run, {
     cacheHit: false,
     language,
-    ...(result?.meta ?? {})
+    ...(result?.meta ?? {}),
   });
   renderDiagnostics();
   await ocrCache.set(cacheKey, result.text);
@@ -201,24 +212,27 @@ async function recognizeImage(acquire, language, signal, job) {
 function processImage(acquire, { translateAfterRecognition = false, trigger = "upload" } = {}) {
   original.value = "";
   translation.value = "";
-  start(async (settings, signal, job) => {
-    const result = recognizeImage(acquire, settings.ocrLanguage, signal, job);
-    acquire = undefined;
-    const { text } = await result;
-    signal.throwIfAborted();
-    original.value = text;
-    refreshButtons();
-    if (!text) {
-      job.outcome = "empty";
-      status(t("statusNoText"), "empty");
-      return;
-    }
-    if (translateAfterRecognition && settings.mode === "translate") {
-      await translate(settings, signal, job, { useCache: true });
-    } else {
-      status(t("statusOcrDone"), "done");
-    }
-  }, { trigger });
+  start(
+    async (settings, signal, job) => {
+      const result = recognizeImage(acquire, settings.ocrLanguage, signal, job);
+      acquire = undefined;
+      const { text } = await result;
+      signal.throwIfAborted();
+      original.value = text;
+      refreshButtons();
+      if (!text) {
+        job.outcome = "empty";
+        status(t("statusNoText"), "empty");
+        return;
+      }
+      if (translateAfterRecognition && settings.mode === "translate") {
+        await translate(settings, signal, job, { useCache: true });
+      } else {
+        status(t("statusOcrDone"), "done");
+      }
+    },
+    { trigger },
+  );
 }
 
 function retry() {
@@ -231,11 +245,11 @@ async function connectPanel() {
   const current = await chrome.windows.getCurrent();
   const port = chrome.runtime.connect({ name: "translator-panel" });
   panelPort = port;
-  port.onMessage.addListener(message => {
+  port.onMessage.addListener((message) => {
     if (message.type === "image") {
-      processImage(signal => readPageImage(message, signal), {
+      processImage((signal) => readPageImage(message, signal), {
         translateAfterRecognition: true,
-        trigger: "context-menu"
+        trigger: "context-menu",
       });
     } else if (message.type === "image-error") {
       stop();
@@ -268,7 +282,8 @@ async function refreshRoute() {
     return;
   }
   const language = new Intl.DisplayNames([displayLocaleTag()], { type: "language" });
-  byId("route").textContent = mode === "translate" ? t("routeTranslateTo", language.of(target)) : t("routeOnlyOcr");
+  byId("route").textContent =
+    mode === "translate" ? t("routeTranslateTo", language.of(target)) : t("routeOnlyOcr");
 }
 
 byId("settings").onclick = () => void chrome.runtime.openOptionsPage();
@@ -276,16 +291,16 @@ byId("choose").onclick = () => fileInput.click();
 fileInput.onchange = () => {
   const file = fileInput.files[0];
   fileInput.value = "";
-  if (file) processImage(signal => readFile(file, signal), { trigger: "upload" });
+  if (file) processImage((signal) => readFile(file, signal), { trigger: "upload" });
 };
 byId("paste").onclick = async () => {
   try {
     const items = await navigator.clipboard.read();
     for (const item of items) {
-      const type = item.types.find(entry => entry.startsWith("image/"));
+      const type = item.types.find((entry) => entry.startsWith("image/"));
       if (!type) continue;
       const blob = await item.getType(type);
-      processImage(signal => readFile(blob, signal), { trigger: "paste" });
+      processImage((signal) => readFile(blob, signal), { trigger: "paste" });
       return;
     }
     status(t("statusNoClipboardImage"), "empty");
@@ -293,30 +308,32 @@ byId("paste").onclick = async () => {
     status(t("statusPasteHint"));
   }
 };
-document.addEventListener("paste", event => {
+document.addEventListener("paste", (event) => {
   const file = Array.from(event.clipboardData?.items ?? [])
-    .find(item => item.kind === "file" && item.type.startsWith("image/"))?.getAsFile();
+    .find((item) => item.kind === "file" && item.type.startsWith("image/"))
+    ?.getAsFile();
   if (!file) return;
   event.preventDefault();
-  processImage(signal => readFile(file, signal), { trigger: "paste" });
+  processImage((signal) => readFile(file, signal), { trigger: "paste" });
 });
 const dropzone = byId("dropzone");
-document.addEventListener("dragover", event => {
-  if (Array.from(event.dataTransfer?.items ?? []).some(item => item.kind === "file")) {
+document.addEventListener("dragover", (event) => {
+  if (Array.from(event.dataTransfer?.items ?? []).some((item) => item.kind === "file")) {
     event.preventDefault();
     if (dropzone) dropzone.dataset.drag = "over";
   }
 });
-document.addEventListener("dragleave", event => {
+document.addEventListener("dragleave", (event) => {
   if (event.relatedTarget === null && dropzone) delete dropzone.dataset.drag;
 });
-document.addEventListener("drop", event => {
+document.addEventListener("drop", (event) => {
   if (dropzone) delete dropzone.dataset.drag;
-  const file = Array.from(event.dataTransfer?.files ?? [])
-    .find(entry => entry.type.startsWith("image/"));
+  const file = Array.from(event.dataTransfer?.files ?? []).find((entry) =>
+    entry.type.startsWith("image/"),
+  );
   if (!file) return;
   event.preventDefault();
-  processImage(signal => readFile(file, signal), { trigger: "drop" });
+  processImage((signal) => readFile(file, signal), { trigger: "drop" });
 });
 byId("retry").onclick = () => retry();
 byId("cancel").onclick = () => {
@@ -334,7 +351,10 @@ byId("clear").onclick = () => {
   refreshButtons();
 };
 
-for (const [id, input] of [["copy-original", original], ["copy-translation", translation]]) {
+for (const [id, input] of [
+  ["copy-original", original],
+  ["copy-translation", translation],
+]) {
   const button = byId(id);
   let copiedTimer;
   button.onclick = async () => {
@@ -342,7 +362,9 @@ for (const [id, input] of [["copy-original", original], ["copy-translation", tra
       await navigator.clipboard.writeText(input.value);
       button.textContent = t("btnCopied");
       clearTimeout(copiedTimer);
-      copiedTimer = setTimeout(() => { button.textContent = t("btnCopy"); }, 1500);
+      copiedTimer = setTimeout(() => {
+        button.textContent = t("btnCopy");
+      }, 1500);
     } catch {
       status(t("statusCopyFailed"), "error");
     }
@@ -358,7 +380,9 @@ if (copyDiagnostics) {
       await navigator.clipboard.writeText(report);
       copyDiagnostics.textContent = t("btnCopied");
       clearTimeout(diagCopiedTimer);
-      diagCopiedTimer = setTimeout(() => { copyDiagnostics.textContent = t("btnCopyDiagnostics"); }, 1500);
+      diagCopiedTimer = setTimeout(() => {
+        copyDiagnostics.textContent = t("btnCopyDiagnostics");
+      }, 1500);
     } catch {
       status(t("statusCopyFailed"), "error");
     }
@@ -368,11 +392,19 @@ if (copyDiagnostics) {
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area === "session") {
     if (changes.cache_ocr && changes.cache_ocr.newValue === undefined) ocrCache.reset();
-    if (changes.cache_translation && changes.cache_translation.newValue === undefined) translationCache.reset();
+    if (changes.cache_translation && changes.cache_translation.newValue === undefined)
+      translationCache.reset();
     return;
   }
-  if (area === "local" && (changes.mode || changes.provider || changes.target ||
-      changes.apiBaseUrl || changes.model || changes.uiLanguage)) {
+  if (
+    area === "local" &&
+    (changes.mode ||
+      changes.provider ||
+      changes.target ||
+      changes.apiBaseUrl ||
+      changes.model ||
+      changes.uiLanguage)
+  ) {
     void refreshRoute().catch(() => {});
   }
 });

@@ -1,62 +1,105 @@
 <!doctype html>
 <html lang="zh-CN">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title data-i18n="panelTitle">图译</title>
-  <link rel="stylesheet" href="ui.css">
-</head>
-<body class="panel">
-  <header class="top">
-    <div>
-      <h1 data-i18n="panelTitle">图译</h1>
-      <p id="route" class="muted"></p>
-    </div>
-    <button id="settings" type="button" data-i18n="btnSettings">设置</button>
-  </header>
-  <section id="dropzone" class="surface controls" aria-label="图片输入">
-    <div class="actions">
-      <button id="choose" type="button" data-i18n="btnUpload">上传图片</button>
-      <button id="paste" type="button" data-i18n="btnPaste">粘贴图片</button>
-      <input id="file" type="file" accept="image/*" hidden>
-    </div>
-    <p class="muted"><span data-i18n="inputHint">拖拽、上传或粘贴图片，也可右键网页图片，或用 </span><kbd>⌃⇧⌘4</kbd><span data-i18n="inputHintSuffix"> 截图后粘贴。</span></p>
-  </section>
-  <div class="surface progress">
-    <p id="status" role="status" aria-live="polite" data-i18n="statusInitial">右键网页图片，或上传／粘贴图片。</p>
-    <button id="cancel" type="button" data-i18n="btnCancel" hidden>取消</button>
-  </div>
-  <section class="surface result">
-    <div class="result-head">
-      <h2><label for="original" data-i18n="labelOriginal">原文</label></h2>
-      <button id="copy-original" type="button" data-i18n="btnCopy" data-i18n-aria-label="ariaCopyOriginal" aria-label="复制原文" disabled>复制</button>
-    </div>
-    <textarea id="original" rows="5" readonly data-i18n-placeholder="placeholderOriginal" placeholder="识别结果" dir="auto"></textarea>
-  </section>
-  <section id="translation-result" class="surface result" hidden>
-    <div class="result-head">
-      <h2><label for="translation" data-i18n="labelTranslation">译文</label></h2>
-      <button id="copy-translation" type="button" data-i18n="btnCopy" data-i18n-aria-label="ariaCopyTranslation" aria-label="复制译文" disabled>复制</button>
-    </div>
-    <textarea id="translation" rows="6" readonly data-i18n-placeholder="placeholderTranslation" placeholder="翻译结果" dir="auto"></textarea>
-  </section>
-  <div class="actions">
-    <button id="retry" class="primary" type="button" data-i18n="btnTranslateText" disabled hidden>翻译识别文字</button>
-    <button id="clear" type="button" data-i18n="btnClear">清除</button>
-  </div>
-  <details id="diagnostics" class="surface diagnostics">
-    <summary class="diagnostics-head">
-      <span data-i18n="labelDiagnostics">诊断信息</span>
-      <span id="diagnostics-summary" class="muted"></span>
-    </summary>
-    <div class="diagnostics-body">
-      <div class="actions">
-        <button id="copy-diagnostics" type="button" data-i18n="btnCopyDiagnostics" disabled>复制诊断信息</button>
-        <span class="muted" data-i18n="diagnosticsPrivacyNote">仅保留当前会话元数据，不含图片、文字或密钥。</span>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title data-i18n="panelTitle">图译</title>
+    <link rel="stylesheet" href="ui.css" />
+  </head>
+  <body class="panel">
+    <header class="top">
+      <div>
+        <h1 data-i18n="panelTitle">图译</h1>
+        <p id="route" class="muted"></p>
       </div>
-      <pre id="diagnostics-output" data-i18n="diagnosticsEmpty">当前会话尚无运行记录。</pre>
+      <button id="settings" type="button" data-i18n="btnSettings">设置</button>
+    </header>
+    <section id="dropzone" class="surface controls" aria-label="图片输入">
+      <div class="actions">
+        <button id="choose" type="button" data-i18n="btnUpload">上传图片</button>
+        <button id="paste" type="button" data-i18n="btnPaste">粘贴图片</button>
+        <input id="file" type="file" accept="image/*" hidden />
+      </div>
+      <p class="muted">
+        <span data-i18n="inputHint">拖拽、上传或粘贴图片，也可右键网页图片，或用 </span
+        ><kbd>⌃⇧⌘4</kbd><span data-i18n="inputHintSuffix"> 截图后粘贴。</span>
+      </p>
+    </section>
+    <div class="surface progress">
+      <p id="status" role="status" aria-live="polite" data-i18n="statusInitial">
+        右键网页图片，或上传／粘贴图片。
+      </p>
+      <button id="cancel" type="button" data-i18n="btnCancel" hidden>取消</button>
     </div>
-  </details>
-  <script type="module" src="panel.js"></script>
-</body>
+    <section class="surface result">
+      <div class="result-head">
+        <h2><label for="original" data-i18n="labelOriginal">原文</label></h2>
+        <button
+          id="copy-original"
+          type="button"
+          data-i18n="btnCopy"
+          data-i18n-aria-label="ariaCopyOriginal"
+          aria-label="复制原文"
+          disabled
+        >
+          复制
+        </button>
+      </div>
+      <textarea
+        id="original"
+        rows="5"
+        readonly
+        data-i18n-placeholder="placeholderOriginal"
+        placeholder="识别结果"
+        dir="auto"
+      ></textarea>
+    </section>
+    <section id="translation-result" class="surface result" hidden>
+      <div class="result-head">
+        <h2><label for="translation" data-i18n="labelTranslation">译文</label></h2>
+        <button
+          id="copy-translation"
+          type="button"
+          data-i18n="btnCopy"
+          data-i18n-aria-label="ariaCopyTranslation"
+          aria-label="复制译文"
+          disabled
+        >
+          复制
+        </button>
+      </div>
+      <textarea
+        id="translation"
+        rows="6"
+        readonly
+        data-i18n-placeholder="placeholderTranslation"
+        placeholder="翻译结果"
+        dir="auto"
+      ></textarea>
+    </section>
+    <div class="actions">
+      <button id="retry" class="primary" type="button" data-i18n="btnTranslateText" disabled hidden>
+        翻译识别文字
+      </button>
+      <button id="clear" type="button" data-i18n="btnClear">清除</button>
+    </div>
+    <details id="diagnostics" class="surface diagnostics">
+      <summary class="diagnostics-head">
+        <span data-i18n="labelDiagnostics">诊断信息</span>
+        <span id="diagnostics-summary" class="muted"></span>
+      </summary>
+      <div class="diagnostics-body">
+        <div class="actions">
+          <button id="copy-diagnostics" type="button" data-i18n="btnCopyDiagnostics" disabled>
+            复制诊断信息
+          </button>
+          <span class="muted" data-i18n="diagnosticsPrivacyNote"
+            >仅保留当前会话元数据，不含图片、文字或密钥。</span
+          >
+        </div>
+        <pre id="diagnostics-output" data-i18n="diagnosticsEmpty">当前会话尚无运行记录。</pre>
+      </div>
+    </details>
+    <script type="module" src="panel.js"></script>
+  </body>
 </html>

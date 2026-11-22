@@ -1,78 +1,130 @@
 <!doctype html>
 <html lang="zh-CN">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title data-i18n="optionsTitle">图译设置</title>
-  <link rel="stylesheet" href="ui.css">
-</head>
-<body class="options">
-  <header class="top">
-    <h1 data-i18n="optionsTitle">图译设置</h1>
-  </header>
-  <form id="settings-form" class="surface form">
-    <label for="mode" data-i18n="labelMode">处理方式</label>
-    <select id="mode">
-      <option value="translate" data-i18n="modeTranslate">识别并翻译</option>
-      <option value="ocr" data-i18n="modeOcr">仅识别</option>
-    </select>
-    <div id="target-fields" class="form" hidden>
-      <label for="target" data-i18n="labelTarget">目标语言</label>
-      <select id="target" disabled></select>
-      <input id="target-custom" type="text" maxlength="63" spellcheck="false" placeholder="en-US" aria-describedby="target-help" hidden disabled>
-      <small id="target-help" class="muted" data-i18n="targetHelp">选择目标语言，或选「自定义语言代码」输入如 en-US。</small>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title data-i18n="optionsTitle">图译设置</title>
+    <link rel="stylesheet" href="ui.css" />
+  </head>
+  <body class="options">
+    <header class="top">
+      <h1 data-i18n="optionsTitle">图译设置</h1>
+    </header>
+    <form id="settings-form" class="surface form">
+      <label for="mode" data-i18n="labelMode">处理方式</label>
+      <select id="mode">
+        <option value="translate" data-i18n="modeTranslate">识别并翻译</option>
+        <option value="ocr" data-i18n="modeOcr">仅识别</option>
+      </select>
+      <div id="target-fields" class="form" hidden>
+        <label for="target" data-i18n="labelTarget">目标语言</label>
+        <select id="target" disabled></select>
+        <input
+          id="target-custom"
+          type="text"
+          maxlength="63"
+          spellcheck="false"
+          placeholder="en-US"
+          aria-describedby="target-help"
+          hidden
+          disabled
+        />
+        <small id="target-help" class="muted" data-i18n="targetHelp"
+          >选择目标语言，或选「自定义语言代码」输入如 en-US。</small
+        >
 
-      <label for="provider-preset" data-i18n="labelProviderPreset">服务预设</label>
-      <select id="provider-preset" disabled></select>
+        <label for="provider-preset" data-i18n="labelProviderPreset">服务预设</label>
+        <select id="provider-preset" disabled></select>
 
-      <div id="api-base-url-fields" class="form" hidden>
-        <label for="api-base-url" data-i18n="labelApiBaseUrl">服务地址</label>
-        <input id="api-base-url" type="url" value="https://api.deepseek.com" maxlength="512" spellcheck="false" placeholder="https://api.openai.com/v1" aria-describedby="api-base-url-help" disabled>
-        <small id="api-base-url-help" class="muted" data-i18n="apiBaseUrlHelp">填写云端或本机翻译服务的基础地址。</small>
+        <div id="api-base-url-fields" class="form" hidden>
+          <label for="api-base-url" data-i18n="labelApiBaseUrl">服务地址</label>
+          <input
+            id="api-base-url"
+            type="url"
+            value="https://api.deepseek.com"
+            maxlength="512"
+            spellcheck="false"
+            placeholder="https://api.openai.com/v1"
+            aria-describedby="api-base-url-help"
+            disabled
+          />
+          <small id="api-base-url-help" class="muted" data-i18n="apiBaseUrlHelp"
+            >填写云端或本机翻译服务的基础地址。</small
+          >
+        </div>
+
+        <label for="model-preset" data-i18n="labelModel">模型名称</label>
+        <select id="model-preset" disabled></select>
+        <input
+          id="model"
+          type="text"
+          value="deepseek-flash"
+          maxlength="128"
+          spellcheck="false"
+          placeholder="gpt-4o-mini"
+          hidden
+          disabled
+        />
       </div>
+      <label for="ocrLanguage" data-i18n="labelOcrLanguage">识别语言</label>
+      <select id="ocrLanguage">
+        <option value="auto" data-i18n="ocrAuto">自动检测</option>
+      </select>
+      <small id="recognition-status" class="muted"></small>
+      <label for="ui-language" data-i18n="labelUiLanguage">界面语言</label>
+      <select id="ui-language">
+        <option value="auto" data-i18n="uiLangAuto">跟随浏览器</option>
+        <option value="zh_CN" data-i18n="uiLangZh">简体中文</option>
+        <option value="en" data-i18n="uiLangEn">English</option>
+      </select>
 
-      <label for="model-preset" data-i18n="labelModel">模型名称</label>
-      <select id="model-preset" disabled></select>
-      <input id="model" type="text" value="deepseek-flash" maxlength="128" spellcheck="false" placeholder="gpt-4o-mini" hidden disabled>
-    </div>
-    <label for="ocrLanguage" data-i18n="labelOcrLanguage">识别语言</label>
-    <select id="ocrLanguage"><option value="auto" data-i18n="ocrAuto">自动检测</option></select>
-    <small id="recognition-status" class="muted"></small>
-    <label for="ui-language" data-i18n="labelUiLanguage">界面语言</label>
-    <select id="ui-language">
-      <option value="auto" data-i18n="uiLangAuto">跟随浏览器</option>
-      <option value="zh_CN" data-i18n="uiLangZh">简体中文</option>
-      <option value="en" data-i18n="uiLangEn">English</option>
-    </select>
-
-    <div class="actions">
-      <button id="save" class="primary" type="submit" data-i18n="btnSaveSettings" disabled>保存设置</button>
-      <p id="status" role="status" aria-live="polite"></p>
-    </div>
-  </form>
-  <section id="translation-key" class="surface form" aria-labelledby="api-heading" hidden>
-    <h2 id="api-heading" data-i18n="apiHeading">翻译服务</h2>
-    <p class="muted" data-i18n="apiDescription">翻译时，仅将当前图片识别出的文字发送至所配置的翻译服务。</p>
-    <label for="api-key" data-i18n="labelApiKey">API 密钥</label>
-    <input id="api-key" type="password" autocomplete="off" spellcheck="false" maxlength="512" aria-describedby="key-help">
-    <small id="key-help" class="muted" data-i18n="keyHelp">密钥安全保存在本机；无需认证的本机服务可留空。</small>
-    <div class="actions">
-      <button id="save-key" class="primary" type="button" data-i18n="btnSaveKey" disabled>保存密钥</button>
-      <p id="key-status" role="status" aria-live="polite" data-i18n="keyStatusChecking">正在检查密钥状态…</p>
-    </div>
-    <div class="actions">
-      <button id="test-connection" type="button" data-i18n="btnTestConnection" disabled>测试连接</button>
-      <p id="test-status" role="status" aria-live="polite"></p>
-    </div>
-  </section>
-  <section id="cache-section" class="surface form" aria-labelledby="cache-heading">
-    <h2 id="cache-heading" data-i18n="cacheHeading">缓存</h2>
-    <p class="muted" data-i18n="cacheDescription">识别和翻译结果仅临时缓存在当前浏览器会话中。</p>
-    <div class="actions">
-      <button id="clear-cache" type="button" data-i18n="btnClearCache">清除缓存</button>
-      <p id="cache-status" role="status" aria-live="polite"></p>
-    </div>
-  </section>
-  <script type="module" src="options.js"></script>
-</body>
+      <div class="actions">
+        <button id="save" class="primary" type="submit" data-i18n="btnSaveSettings" disabled>
+          保存设置
+        </button>
+        <p id="status" role="status" aria-live="polite"></p>
+      </div>
+    </form>
+    <section id="translation-key" class="surface form" aria-labelledby="api-heading" hidden>
+      <h2 id="api-heading" data-i18n="apiHeading">翻译服务</h2>
+      <p class="muted" data-i18n="apiDescription">
+        翻译时，仅将当前图片识别出的文字发送至所配置的翻译服务。
+      </p>
+      <label for="api-key" data-i18n="labelApiKey">API 密钥</label>
+      <input
+        id="api-key"
+        type="password"
+        autocomplete="off"
+        spellcheck="false"
+        maxlength="512"
+        aria-describedby="key-help"
+      />
+      <small id="key-help" class="muted" data-i18n="keyHelp"
+        >密钥安全保存在本机；无需认证的本机服务可留空。</small
+      >
+      <div class="actions">
+        <button id="save-key" class="primary" type="button" data-i18n="btnSaveKey" disabled>
+          保存密钥
+        </button>
+        <p id="key-status" role="status" aria-live="polite" data-i18n="keyStatusChecking">
+          正在检查密钥状态…
+        </p>
+      </div>
+      <div class="actions">
+        <button id="test-connection" type="button" data-i18n="btnTestConnection" disabled>
+          测试连接
+        </button>
+        <p id="test-status" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+    <section id="cache-section" class="surface form" aria-labelledby="cache-heading">
+      <h2 id="cache-heading" data-i18n="cacheHeading">缓存</h2>
+      <p class="muted" data-i18n="cacheDescription">识别和翻译结果仅临时缓存在当前浏览器会话中。</p>
+      <div class="actions">
+        <button id="clear-cache" type="button" data-i18n="btnClearCache">清除缓存</button>
+        <p id="cache-status" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+    <script type="module" src="options.js"></script>
+  </body>
 </html>

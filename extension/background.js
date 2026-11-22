@@ -4,7 +4,7 @@ import { initI18n, t } from "./i18n.js";
 const menuId = "recognize-and-translate";
 const panels = new Map();
 const pending = new Map();
-const pendingKey = windowId => `pending_${windowId}`;
+const pendingKey = (windowId) => `pending_${windowId}`;
 
 function savePending(windowId, entry) {
   pending.set(windowId, entry);
@@ -37,12 +37,14 @@ async function syncMenuTitle() {
 }
 
 chrome.runtime.onInstalled.addListener(() => {
-  void getSettings().catch(() => ({ uiLanguage: "auto" })).then(async ({ uiLanguage }) => {
-    await initI18n(uiLanguage);
-    chrome.contextMenus.removeAll(() => {
-      chrome.contextMenus.create({ id: menuId, title: t("menuTitle"), contexts: ["image"] });
+  void getSettings()
+    .catch(() => ({ uiLanguage: "auto" }))
+    .then(async ({ uiLanguage }) => {
+      await initI18n(uiLanguage);
+      chrome.contextMenus.removeAll(() => {
+        chrome.contextMenus.create({ id: menuId, title: t("menuTitle"), contexts: ["image"] });
+      });
     });
-  });
   void chrome.storage.local.remove("cloudConsent").catch(() => {});
   void chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(() => {});
 });
@@ -66,21 +68,26 @@ function deliver(windowId, message) {
 }
 
 export function openFromImage(info, tab) {
-  if (info.menuItemId !== menuId || !Number.isInteger(tab?.id) || !Number.isInteger(tab.windowId)) return;
+  if (info.menuItemId !== menuId || !Number.isInteger(tab?.id) || !Number.isInteger(tab.windowId))
+    return;
 
   // Call in the context-menu gesture, before any asynchronous work.
   void chrome.sidePanel.open({ windowId: tab.windowId }).catch(() => {});
   const source = info.srcUrl;
-  const message = typeof source !== "string" || !source || source.length > MAX_IMAGE_BASE64 + 128
-    ? { type: "image-error", code: source?.length > MAX_IMAGE_BASE64 ? "image_size" : "image_read" }
-    : {
-        type: "image",
-        source,
-        page: info.frameUrl || info.pageUrl,
-        tabId: tab.id,
-        windowId: tab.windowId,
-        frameId: info.frameId ?? 0
-      };
+  const message =
+    typeof source !== "string" || !source || source.length > MAX_IMAGE_BASE64 + 128
+      ? {
+          type: "image-error",
+          code: source?.length > MAX_IMAGE_BASE64 ? "image_size" : "image_read",
+        }
+      : {
+          type: "image",
+          source,
+          page: info.frameUrl || info.pageUrl,
+          tabId: tab.id,
+          windowId: tab.windowId,
+          frameId: info.frameId ?? 0,
+        };
   if (deliver(tab.windowId, message)) {
     clearPending(tab.windowId);
     return;
@@ -96,15 +103,21 @@ export function openFromImage(info, tab) {
 
 chrome.contextMenus.onClicked.addListener(openFromImage);
 
-chrome.runtime.onConnect.addListener(port => {
-  if (port.name !== "translator-panel" || port.sender?.url !== chrome.runtime.getURL("panel.html")) return;
+chrome.runtime.onConnect.addListener((port) => {
+  if (port.name !== "translator-panel" || port.sender?.url !== chrome.runtime.getURL("panel.html"))
+    return;
   let windowId;
-  port.onMessage.addListener(message => {
-    if (windowId !== undefined || message?.type !== "ready" ||
-        !Number.isInteger(message.windowId) || message.windowId < 0) return;
+  port.onMessage.addListener((message) => {
+    if (
+      windowId !== undefined ||
+      message?.type !== "ready" ||
+      !Number.isInteger(message.windowId) ||
+      message.windowId < 0
+    )
+      return;
     windowId = message.windowId;
     panels.set(windowId, port);
-    void takePending(windowId).then(queued => {
+    void takePending(windowId).then((queued) => {
       if (queued && panels.get(windowId) === port) deliver(windowId, queued);
     });
   });
@@ -113,7 +126,7 @@ chrome.runtime.onConnect.addListener(port => {
   });
 });
 
-chrome.windows.onRemoved.addListener(windowId => {
+chrome.windows.onRemoved.addListener((windowId) => {
   panels.delete(windowId);
   clearPending(windowId);
 });

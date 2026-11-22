@@ -26,6 +26,10 @@ Read [SPEC.md](SPEC.md) for product behavior and [IMPLEMENTATION.md](IMPLEMENTAT
 ## Commands
 
 ```sh
+# Lint & format checks (ESLint, Prettier, swift-format, ShellCheck)
+npm run lint
+npm run format
+
 # Fast JS unit tests (must pass before every commit)
 npm test
 
@@ -54,4 +58,4 @@ This repo uses **Conventional Commits** with `semantic-release` on `master` (`.r
 - `BREAKING CHANGE:` / `feat!:` → major release (`x.0.0`)
 - `docs:`, `chore:`, `ci:`, `test:`, `refactor:` → no release
 
-`semantic-release` updates `package.json`, `extension/manifest.json`, and `CHANGELOG.md` automatically, and attaches the universal macOS zip built by `scripts/package.sh` to the GitHub Release. Keep `SPEC.md`, `IMPLEMENTATION.md`, `README.md`, and `CONTRIBUTING.md` in English and in sync with changes.
+`semantic-release` updates `package.json`, `extension/manifest.json`, and `CHANGELOG.md` automatically, attaches the universal macOS zip built by `scripts/package.sh` to the GitHub Release, and updates `Casks/tuyi.rb` in `leslieo2/homebrew-tap` via `scripts/update-homebrew-tap.mjs` when `HOMEBREW_TAP_TOKEN` is configured. Keep `SPEC.md`, `IMPLEMENTATION.md`, `README.md`, and `CONTRIBUTING.md` in English and in sync with changes.

@@ -30,26 +30,34 @@
     return list;
   }
 
-  window.addEventListener("contextmenu", event => {
-    if (!event.isTrusted) return;
-    clearSelection();
-    const candidates = findImages(event)
-      .filter(image => image.currentSrc && image.naturalWidth && image.naturalHeight)
-      .map(image => ({ image: new WeakRef(image), source: image.currentSrc }));
-    if (!candidates.length) return;
+  window.addEventListener(
+    "contextmenu",
+    (event) => {
+      if (!event.isTrusted) return;
+      clearSelection();
+      const candidates = findImages(event)
+        .filter((image) => image.currentSrc && image.naturalWidth && image.naturalHeight)
+        .map((image) => ({ image: new WeakRef(image), source: image.currentSrc }));
+      if (!candidates.length) return;
 
-    selection = {
-      candidates,
-      page: location.href,
-      expiresAt: Date.now() + selectionLifetime
-    };
-    expiry = setTimeout(clearSelection, selectionLifetime);
-  }, { capture: true, passive: true });
+      selection = {
+        candidates,
+        page: location.href,
+        expiresAt: Date.now() + selectionLifetime,
+      };
+      expiry = setTimeout(clearSelection, selectionLifetime);
+    },
+    { capture: true, passive: true },
+  );
 
   for (const type of ["pointerdown", "keydown"]) {
-    window.addEventListener(type, event => {
-      if (event.isTrusted) clearSelection();
-    }, { capture: true, passive: true });
+    window.addEventListener(
+      type,
+      (event) => {
+        if (event.isTrusted) clearSelection();
+      },
+      { capture: true, passive: true },
+    );
   }
   window.addEventListener("pagehide", clearSelection);
 
@@ -67,7 +75,7 @@
   }
 
   function visibleRect(image) {
-    let rect = image.getBoundingClientRect();
+    const rect = image.getBoundingClientRect();
     let left = rect.left;
     let top = rect.top;
     let win = window;
@@ -92,7 +100,7 @@
         y: clampedTop,
         width: clampedRight - clampedLeft,
         height: clampedBottom - clampedTop,
-        dpr: win.devicePixelRatio || 1
+        dpr: win.devicePixelRatio || 1,
       };
     } catch {
       return null;
@@ -127,23 +135,29 @@
       return false;
     }
 
-    const release = () => { canvas.width = 0; };
+    const release = () => {
+      canvas.width = 0;
+    };
     try {
-      canvas.toBlob(png => {
+      canvas.toBlob((png) => {
         if (png?.size && png.size <= maxBytes) {
           release();
           encodeBlob(png, respond);
           return;
         }
         // Large photos as PNG can exceed 8 MiB; fall back to JPEG before failing.
-        canvas.toBlob(jpeg => {
-          release();
-          if (!jpeg?.size || jpeg.size > maxBytes) {
-            respond({ code: jpeg?.size > maxBytes ? "image_size" : "image_read" });
-            return;
-          }
-          encodeBlob(jpeg, respond);
-        }, "image/jpeg", 0.92);
+        canvas.toBlob(
+          (jpeg) => {
+            release();
+            if (!jpeg?.size || jpeg.size > maxBytes) {
+              respond({ code: jpeg?.size > maxBytes ? "image_size" : "image_read" });
+              return;
+            }
+            encodeBlob(jpeg, respond);
+          },
+          "image/jpeg",
+          0.92,
+        );
       }, "image/png");
       return true;
     } catch {
@@ -154,20 +168,29 @@
   }
 
   chrome.runtime.onMessage.addListener((message, sender, respond) => {
-    if (message?.type !== "read-image-selection" ||
-        sender.id !== chrome.runtime.id || sender.url !== chrome.runtime.getURL("panel.html")) return;
+    if (
+      message?.type !== "read-image-selection" ||
+      sender.id !== chrome.runtime.id ||
+      sender.url !== chrome.runtime.getURL("panel.html")
+    )
+      return;
     const selected = selection;
     clearSelection();
-    const match = selected?.candidates.find(entry => entry.source === message.source);
+    const match = selected?.candidates.find((entry) => entry.source === message.source);
     const image = match?.image.deref();
-    const sameTopPage = window !== window.top ||
-      withoutFragment(selected?.page) === withoutFragment(message.page);
-    if (!selected || !match || !image?.isConnected ||
-        Date.now() >= selected.expiresAt ||
-        image.currentSrc !== match.source ||
-        !image.naturalWidth || !image.naturalHeight ||
-        !sameTopPage ||
-        withoutFragment(selected.page) !== withoutFragment(location.href)) {
+    const sameTopPage =
+      window !== window.top || withoutFragment(selected?.page) === withoutFragment(message.page);
+    if (
+      !selected ||
+      !match ||
+      !image?.isConnected ||
+      Date.now() >= selected.expiresAt ||
+      image.currentSrc !== match.source ||
+      !image.naturalWidth ||
+      !image.naturalHeight ||
+      !sameTopPage ||
+      withoutFragment(selected.page) !== withoutFragment(location.href)
+    ) {
       respond({ code: "image_read" });
       return;
     }

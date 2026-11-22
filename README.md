@@ -26,7 +26,7 @@ A privacy-first Chrome extension for **macOS** that recognizes text inside image
    brew install --cask leslieo2/tap/tuyi
    ```
 
-2. Load the extension in Google Chrome *(first time only)*:
+2. Load the extension in Google Chrome _(first time only)_:
    - Open `chrome://extensions` and turn on **Developer mode** (top right).
    - Click **Load unpacked**.
    - In the macOS file dialog, press `⇧⌘G`, paste the fixed path below, and press **Return**:
@@ -35,7 +35,7 @@ A privacy-first Chrome extension for **macOS** that recognizes text inside image
      ~/Library/Application Support/Local Image Translator/extension
      ```
 
-3. *(Optional, for translation)* Click the extension icon in Chrome's toolbar → **Settings**, choose your translation service/model, and save your API key.
+3. _(Optional, for translation)_ Click the extension icon in Chrome's toolbar → **Settings**, choose your translation service/model, and save your API key.
 
 **Updating with Homebrew:**
 
@@ -78,7 +78,7 @@ Then click **Reload** on the Tuyi card in `chrome://extensions` and refresh any 
    brew uninstall --cask tuyi
    ```
 
-   *(To also remove a saved API key from macOS Keychain, run `security delete-generic-password -s com.local_image_translator.deepseek` or `./scripts/uninstall.sh --delete-key` from the source/release folder.)*
+   _(To also remove a saved API key from macOS Keychain, run `security delete-generic-password -s com.local_image_translator.deepseek` or `./scripts/uninstall.sh --delete-key` from the source/release folder.)_
 
 ## Developers & License
 

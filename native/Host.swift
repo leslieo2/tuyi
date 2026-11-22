@@ -71,11 +71,12 @@ struct ImageTranslatorHost {
             }
         } catch {
             let hostError = error as? HostError
-            try? send(Reply(
-                type: "error",
-                code: hostError?.code ?? "native_failed",
-                meta: diagnosticsEnabled ? hostError?.meta : nil
-            ))
+            try? send(
+                Reply(
+                    type: "error",
+                    code: hostError?.code ?? "native_failed",
+                    meta: diagnosticsEnabled ? hostError?.meta : nil
+                ))
         }
     }
 }

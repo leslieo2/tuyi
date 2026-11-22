@@ -6,7 +6,9 @@ import { displayLocaleTag, resolveUiLocale } from "../extension/i18n.js";
 import { root } from "./helpers.mjs";
 
 function loadMessages(locale) {
-  return JSON.parse(readFileSync(resolve(root, `extension/_locales/${locale}/messages.json`), "utf8"));
+  return JSON.parse(
+    readFileSync(resolve(root, `extension/_locales/${locale}/messages.json`), "utf8"),
+  );
 }
 
 test("zh_CN and en locale message files define identical keys", () => {

@@ -1,9 +1,18 @@
-const SENSITIVE_KEYS = new Set(["apiKey", "authorization", "key", "token", "text", "original", "rawImage", "base64"]);
+const SENSITIVE_KEYS = new Set([
+  "apiKey",
+  "authorization",
+  "key",
+  "token",
+  "text",
+  "original",
+  "rawImage",
+  "base64",
+]);
 
 function sanitize(value) {
   if (value === null || value === undefined) return undefined;
   if (typeof value !== "object") return value;
-  if (Array.isArray(value)) return value.map(sanitize).filter(item => item !== undefined);
+  if (Array.isArray(value)) return value.map(sanitize).filter((item) => item !== undefined);
   const clean = {};
   for (const [key, entry] of Object.entries(value)) {
     if (SENSITIVE_KEYS.has(key) || entry === undefined || entry === null) continue;
@@ -35,18 +44,20 @@ export function createDiagnosticsStore({ maxHistory = 10, logger = console } = {
       _startedMs: nowMs(),
       trigger,
       outcome: "running",
-      settings: settings ? sanitize({
-        mode: settings.mode,
-        ocrLanguage: settings.ocrLanguage,
-        target: settings.target,
-        apiBaseUrl: settings.apiBaseUrl,
-        model: settings.model
-      }) : undefined,
+      settings: settings
+        ? sanitize({
+            mode: settings.mode,
+            ocrLanguage: settings.ocrLanguage,
+            target: settings.target,
+            apiBaseUrl: settings.apiBaseUrl,
+            model: settings.model,
+          })
+        : undefined,
       image: undefined,
       ocr: undefined,
       translation: undefined,
       error: undefined,
-      totalDurationMs: undefined
+      totalDurationMs: undefined,
     };
     runs = [run, ...runs].slice(0, maxHistory);
     log("info", `run #${run.id} started (${trigger})`, sanitize({ settings: run.settings }));
@@ -83,7 +94,7 @@ export function createDiagnosticsStore({ maxHistory = 10, logger = console } = {
     const summary = sanitize({
       outcome: run.outcome,
       totalDurationMs: run.totalDurationMs,
-      error: run.error
+      error: run.error,
     });
     if (outcome === "error") {
       log("error", `run #${run.id} failed`, summary);
@@ -106,7 +117,7 @@ export function createDiagnosticsStore({ maxHistory = 10, logger = console } = {
       image: run.image,
       ocr: run.ocr,
       translation: run.translation,
-      error: run.error
+      error: run.error,
     });
   }
 
@@ -122,7 +133,7 @@ export function createDiagnosticsStore({ maxHistory = 10, logger = console } = {
     runs = [];
   }
 
-  function formatSummary(run, translateLabel = key => key) {
+  function formatSummary(run, translateLabel = (key) => key) {
     if (!run) return "";
     const parts = [];
     if (run.outcome === "error") {
@@ -171,6 +182,6 @@ export function createDiagnosticsStore({ maxHistory = 10, logger = console } = {
     history,
     clear,
     formatSummary,
-    formatReport
+    formatReport,
   };
 }

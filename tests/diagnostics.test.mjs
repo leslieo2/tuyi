@@ -6,9 +6,15 @@ function fakeLogger() {
   const entries = [];
   return {
     entries,
-    info(message, details) { entries.push({ level: "info", message, details }); },
-    warn(message, details) { entries.push({ level: "warn", message, details }); },
-    error(message, details) { entries.push({ level: "error", message, details }); }
+    info(message, details) {
+      entries.push({ level: "info", message, details });
+    },
+    warn(message, details) {
+      entries.push({ level: "warn", message, details });
+    },
+    error(message, details) {
+      entries.push({ level: "error", message, details });
+    },
   };
 }
 
@@ -23,11 +29,23 @@ test("diagnostics store records session metadata and strips sensitive fields", (
       target: "zh-Hans",
       apiBaseUrl: "https://api.deepseek.com",
       model: "deepseek-flash",
-      apiKey: "sk-secret-must-not-appear"
-    }
+      apiKey: "sk-secret-must-not-appear",
+    },
   });
-  store.recordImage(run, { source: "context-menu", bytes: 12345, image: "base64-secret", durationMs: 12 });
-  store.recordOcr(run, { cacheHit: false, language: "auto", lineCount: 2, charCount: 40, text: "Xin chào", durationMs: 80 });
+  store.recordImage(run, {
+    source: "context-menu",
+    bytes: 12345,
+    image: "base64-secret",
+    durationMs: 12,
+  });
+  store.recordOcr(run, {
+    cacheHit: false,
+    language: "auto",
+    lineCount: 2,
+    charCount: 40,
+    text: "Xin chào",
+    durationMs: 80,
+  });
   store.recordTranslation(run, {
     cacheHit: false,
     route: "api",
@@ -38,7 +56,7 @@ test("diagnostics store records session metadata and strips sensitive fields", (
     finishReason: "stop",
     sameAsOriginal: false,
     authorization: "Bearer secret",
-    translation: "你好"
+    translation: "你好",
   });
   store.finishRun(run, "done");
 
@@ -51,13 +69,17 @@ test("diagnostics store records session metadata and strips sensitive fields", (
   assert.equal(parsed.translation.httpStatus, 200);
   assert.equal(typeof parsed.totalDurationMs, "number");
 
-  const summary = store.formatSummary(store.latest(), key => ({
-    diagRouteApi: "API",
-    diagRouteLocalSkip: "Local skip",
-    diagRouteCache: "Cache",
-    diagRouteOcrOnly: "OCR",
-    diagUnchanged: "Unchanged"
-  }[key] ?? key));
+  const summary = store.formatSummary(
+    store.latest(),
+    (key) =>
+      ({
+        diagRouteApi: "API",
+        diagRouteLocalSkip: "Local skip",
+        diagRouteCache: "Cache",
+        diagRouteOcrOnly: "OCR",
+        diagUnchanged: "Unchanged",
+      })[key] ?? key,
+  );
   assert.match(summary, /^API · vi → zh-Hans · \d+ms$/);
 });
 
@@ -66,15 +88,28 @@ test("diagnostics warns when API output matches original verbatim and respects r
   const store = createDiagnosticsStore({ maxHistory: 2, logger });
 
   const r1 = store.startRun({ trigger: "upload" });
-  store.recordTranslation(r1, { route: "api", target: "zh-Hans", detectedLanguage: "vi", sameAsOriginal: true });
+  store.recordTranslation(r1, {
+    route: "api",
+    target: "zh-Hans",
+    detectedLanguage: "vi",
+    sameAsOriginal: true,
+  });
   store.finishRun(r1, "done");
-  assert.ok(logger.entries.some(entry => entry.level === "warn" && /verbatim/.test(entry.message)));
-  assert.match(store.formatSummary(r1, key => key), /diagUnchanged/);
+  assert.ok(
+    logger.entries.some((entry) => entry.level === "warn" && /verbatim/.test(entry.message)),
+  );
+  assert.match(
+    store.formatSummary(r1, (key) => key),
+    /diagUnchanged/,
+  );
 
   const r2 = store.startRun({ trigger: "retry" });
   store.finishRun(r2, "error", { code: "http_auth", stage: "translate" });
-  assert.ok(logger.entries.some(entry => entry.level === "error"));
-  assert.match(store.formatSummary(r2, key => key), /error: http_auth/);
+  assert.ok(logger.entries.some((entry) => entry.level === "error"));
+  assert.match(
+    store.formatSummary(r2, (key) => key),
+    /error: http_auth/,
+  );
 
   const r3 = store.startRun({ trigger: "paste" });
   store.recordOcr(r3, { cacheHit: true, language: "auto", charCount: 10 });

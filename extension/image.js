@@ -13,7 +13,8 @@ export function readFile(file, signal) {
     reader.onloadend = () => {
       signal.removeEventListener("abort", abort);
       if (signal.aborted) reject(new DOMException("Aborted", "AbortError"));
-      else if (typeof reader.result === "string") resolve(reader.result.slice(reader.result.indexOf(",") + 1));
+      else if (typeof reader.result === "string")
+        resolve(reader.result.slice(reader.result.indexOf(",") + 1));
       else reject(new Error("invalid_image"));
     };
     signal.addEventListener("abort", abort, { once: true });
@@ -22,7 +23,7 @@ export function readFile(file, signal) {
 }
 
 function canvasToBase64(canvas, signal) {
-  const toBlob = (type, quality) => new Promise(resolve => canvas.toBlob(resolve, type, quality));
+  const toBlob = (type, quality) => new Promise((resolve) => canvas.toBlob(resolve, type, quality));
   return (async () => {
     try {
       let blob = await toBlob("image/png");
@@ -46,7 +47,7 @@ async function captureCroppedRegion(windowId, rect, signal) {
     dataUrl = await chrome.tabs.captureVisibleTab(windowId, { format: "png" });
   } catch (error) {
     console.warn("captureVisibleTab failed:", error);
-    throw new Error("image_read");
+    throw new Error("image_read", { cause: error });
   }
   signal.throwIfAborted();
 
@@ -83,12 +84,13 @@ export async function readPageImage({ tabId, windowId, frameId, source, page }, 
   try {
     let missingReceiver = false;
     const response = await Promise.race([
-      chrome.tabs.sendMessage(tabId, { type: "read-image-selection", source, page }, { frameId })
+      chrome.tabs
+        .sendMessage(tabId, { type: "read-image-selection", source, page }, { frameId })
         .catch(() => {
           missingReceiver = true;
           return null;
         }),
-      interrupted
+      interrupted,
     ]);
     signal.throwIfAborted();
     if (typeof response?.base64 === "string") return response.base64;

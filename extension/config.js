@@ -9,10 +9,11 @@ export const DEFAULTS = Object.freeze({
   ocrLanguage: "auto",
   apiBaseUrl: "https://api.deepseek.com",
   model: "deepseek-flash",
-  uiLanguage: "auto"
+  uiLanguage: "auto",
 });
 
 const languageTag = /^[A-Za-z]{2,8}(?:-[A-Za-z0-9]{1,8})*$/u;
+// eslint-disable-next-line no-control-regex -- intentionally reject ASCII control characters in model IDs
 const modelPattern = /^[^\s\x00-\x1f\x7f]{1,128}$/u;
 const loopbackHosts = new Set(["127.0.0.1", "localhost", "[::1]", "::1"]);
 
@@ -77,12 +78,18 @@ export function normalizeSettings(input = {}) {
     mode: mode ?? "ocr",
     needsModeSelection: mode === null,
     target: targetLanguage(input.target) ?? DEFAULTS.target,
-    ocrLanguage: typeof input.ocrLanguage === "string" &&
-      input.ocrLanguage.length <= 63 && input.ocrLanguage === input.ocrLanguage.trim() &&
-      languageTag.test(input.ocrLanguage) ? input.ocrLanguage : DEFAULTS.ocrLanguage,
+    ocrLanguage:
+      typeof input.ocrLanguage === "string" &&
+      input.ocrLanguage.length <= 63 &&
+      input.ocrLanguage === input.ocrLanguage.trim() &&
+      languageTag.test(input.ocrLanguage)
+        ? input.ocrLanguage
+        : DEFAULTS.ocrLanguage,
     apiBaseUrl: normalizeApiBaseUrl(input.apiBaseUrl) ?? DEFAULTS.apiBaseUrl,
     model: normalizeModel(input.model) ?? DEFAULTS.model,
-    uiLanguage: ["auto", "zh_CN", "en"].includes(input.uiLanguage) ? input.uiLanguage : DEFAULTS.uiLanguage
+    uiLanguage: ["auto", "zh_CN", "en"].includes(input.uiLanguage)
+      ? input.uiLanguage
+      : DEFAULTS.uiLanguage,
   };
 }
 
@@ -95,7 +102,7 @@ export function translationRequest(settings, text) {
     apiBaseUrl: settings.apiBaseUrl,
     model: settings.model,
     cloudConsent: 1,
-    text
+    text,
   };
 }
 

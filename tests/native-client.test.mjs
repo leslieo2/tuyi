@@ -5,31 +5,39 @@ import { HOST } from "../extension/config.js";
 
 function connect() {
   const listeners = {};
-  const events = name => ({ addListener(fn) { listeners[name] = fn; } });
+  const events = (name) => ({
+    addListener(fn) {
+      listeners[name] = fn;
+    },
+  });
   const port = {
     disconnects: 0,
     sent: [],
-    disconnect() { this.disconnects++; },
-    postMessage(message) { this.sent.push(message); },
+    disconnect() {
+      this.disconnects++;
+    },
+    postMessage(message) {
+      this.sent.push(message);
+    },
     onMessage: events("message"),
-    onDisconnect: events("disconnect")
+    onDisconnect: events("disconnect"),
   };
   globalThis.chrome = {
     runtime: {
       connectNative(name) {
         assert.equal(name, HOST);
         return port;
-      }
-    }
+      },
+    },
   };
   return {
     port,
-    send: message => listeners.message(message),
+    send: (message) => listeners.message(message),
     disconnect(message) {
-      chrome.runtime.lastError = { message };
+      globalThis.chrome.runtime.lastError = { message };
       listeners.disconnect();
-      delete chrome.runtime.lastError;
-    }
+      delete globalThis.chrome.runtime.lastError;
+    },
   };
 }
 
@@ -37,7 +45,7 @@ test("preserves ordering and streams before done", async () => {
   const client = connect();
   const chunks = [];
   const translate = { command: "translate", text: "test" };
-  const operation = nativeRequest(translate, { onDelta: text => chunks.push(text) });
+  const operation = nativeRequest(translate, { onDelta: (text) => chunks.push(text) });
   assert.deepEqual(client.port.sent, [{ v: 1, ...translate }]);
   client.send({ v: 1, type: "delta", text: "中" });
   assert.deepEqual(chunks, ["中"]);
@@ -52,14 +60,19 @@ test("preserves ordering and streams before done", async () => {
 test("handles abort, invalid messages, missing host and native errors", async () => {
   const client = connect();
   const controller = new AbortController();
-  const operation = nativeRequest({ command: "translate" }, {
-    signal: controller.signal,
-    onDelta: () => assert.fail("A cancelled operation must ignore delayed text")
-  });
+  const operation = nativeRequest(
+    { command: "translate" },
+    {
+      signal: controller.signal,
+      onDelta: () => assert.fail("A cancelled operation must ignore delayed text"),
+    },
+  );
   controller.abort();
   client.send({ v: 1, type: "delta", text: "过期消息" });
   await assert.rejects(operation, { name: "AbortError" });
-  await assert.rejects(nativeRequest({ command: "ocr" }, { signal: controller.signal }), { name: "AbortError" });
+  await assert.rejects(nativeRequest({ command: "ocr" }, { signal: controller.signal }), {
+    name: "AbortError",
+  });
   assert.equal(client.port.disconnects, 1);
 
   const malformed = connect();
@@ -78,7 +91,11 @@ test("handles abort, invalid messages, missing host and native errors", async ()
   await assert.rejects(reply, /missing_key/);
 
   const checked = connect();
-  const testReply = nativeRequest({ command: "test_connection", apiBaseUrl: "https://api.openai.com/v1", model: "gpt-4o-mini" });
+  const testReply = nativeRequest({
+    command: "test_connection",
+    apiBaseUrl: "https://api.openai.com/v1",
+    model: "gpt-4o-mini",
+  });
   checked.send({ v: 1, type: "test_connection", ok: true });
   assert.deepEqual(await testReply, { v: 1, type: "test_connection", ok: true });
 
@@ -89,6 +106,14 @@ test("handles abort, invalid messages, missing host and native errors", async ()
 
   const failedWithMeta = connect();
   const diagError = nativeRequest({ command: "translate", diagnostics: true });
-  failedWithMeta.send({ v: 1, type: "error", code: "http_auth", meta: { httpStatus: 401, model: "gpt-4o-mini" } });
-  await assert.rejects(diagError, err => err.message === "http_auth" && err.meta?.httpStatus === 401);
+  failedWithMeta.send({
+    v: 1,
+    type: "error",
+    code: "http_auth",
+    meta: { httpStatus: 401, model: "gpt-4o-mini" },
+  });
+  await assert.rejects(
+    diagError,
+    (err) => err.message === "http_auth" && err.meta?.httpStatus === 401,
+  );
 });

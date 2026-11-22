@@ -11,16 +11,19 @@ func write(_ name: String, _ text: String?, size: CGSize = CGSize(width: 920, he
         if let text {
             let paragraph = NSMutableParagraphStyle()
             paragraph.lineSpacing = 18
-            (text as NSString).draw(in: bounds.insetBy(dx: 42, dy: 32), withAttributes: [
-                .foregroundColor: NSColor.black,
-                .font: NSFont.systemFont(ofSize: 46, weight: .medium),
-                .paragraphStyle: paragraph
-            ])
+            (text as NSString).draw(
+                in: bounds.insetBy(dx: 42, dy: 32),
+                withAttributes: [
+                    .foregroundColor: NSColor.black,
+                    .font: NSFont.systemFont(ofSize: 46, weight: .medium),
+                    .paragraphStyle: paragraph
+                ])
         }
         return true
     }
     guard let tiff = image.tiffRepresentation, let bitmap = NSBitmapImageRep(data: tiff),
-          let png = bitmap.representation(using: .png, properties: [:]) else { exit(1) }
+        let png = bitmap.representation(using: .png, properties: [:])
+    else { exit(1) }
     try png.write(to: output.appendingPathComponent(name + ".png"))
 }
 

@@ -4,7 +4,7 @@ import { errorText } from "./errors.js";
 import { applyI18n, displayLocaleTag, initI18n, t } from "./i18n.js";
 import { nativeRequest } from "./native-client.js";
 
-const byId = id => document.getElementById(id);
+const byId = (id) => document.getElementById(id);
 const mode = byId("mode");
 const target = byId("target");
 const targetCustom = byId("target-custom");
@@ -26,8 +26,25 @@ const clearCacheBtn = byId("clear-cache");
 const cacheStatus = byId("cache-status");
 
 const TARGET_PRESETS = [
-  "zh-Hans", "zh-Hant", "en", "ja", "ko", "fr", "de", "es",
-  "pt", "ru", "it", "ar", "vi", "th", "id", "nl", "pl", "tr", "hi"
+  "zh-Hans",
+  "zh-Hant",
+  "en",
+  "ja",
+  "ko",
+  "fr",
+  "de",
+  "es",
+  "pt",
+  "ru",
+  "it",
+  "ar",
+  "vi",
+  "th",
+  "id",
+  "nl",
+  "pl",
+  "tr",
+  "hi",
 ];
 
 const PROVIDER_PRESETS = [
@@ -35,32 +52,32 @@ const PROVIDER_PRESETS = [
     id: "deepseek",
     label: () => "DeepSeek",
     url: "https://api.deepseek.com",
-    models: ["deepseek-flash", "deepseek-chat"]
+    models: ["deepseek-flash", "deepseek-chat"],
   },
   {
     id: "openai",
     label: () => "OpenAI",
     url: "https://api.openai.com/v1",
-    models: ["gpt-4o-mini", "gpt-4.1-mini", "gpt-4.1"]
+    models: ["gpt-4o-mini", "gpt-4.1-mini", "gpt-4.1"],
   },
   {
     id: "openrouter",
     label: () => "OpenRouter",
     url: "https://openrouter.ai/api/v1",
-    models: ["openai/gpt-4o-mini", "deepseek/deepseek-chat", "google/gemini-2.5-flash"]
+    models: ["openai/gpt-4o-mini", "deepseek/deepseek-chat", "google/gemini-2.5-flash"],
   },
   {
     id: "ollama",
     label: () => t("presetOllama"),
     url: "http://127.0.0.1:11434/v1",
-    models: ["qwen2.5:7b", "llama3.2", "gemma3:4b"]
+    models: ["qwen2.5:7b", "llama3.2", "gemma3:4b"],
   },
   {
     id: "lmstudio",
     label: () => t("presetLmStudio"),
     url: "http://127.0.0.1:1234/v1",
-    models: ["local-model"]
-  }
+    models: ["local-model"],
+  },
 ];
 
 let settings;
@@ -68,7 +85,7 @@ let loadedLanguages;
 let testingController;
 
 function activePreset() {
-  return PROVIDER_PRESETS.find(preset => preset.id === providerPreset.value) ?? null;
+  return PROVIDER_PRESETS.find((preset) => preset.id === providerPreset.value) ?? null;
 }
 
 function syncCustomTarget() {
@@ -107,7 +124,7 @@ function refreshMode() {
 
 function renderTargetOptions(chosen) {
   const display = new Intl.DisplayNames([displayLocaleTag()], { type: "language" });
-  const options = TARGET_PRESETS.map(code => new Option(`${display.of(code)} (${code})`, code));
+  const options = TARGET_PRESETS.map((code) => new Option(`${display.of(code)} (${code})`, code));
   options.push(new Option(t("targetCustomOption"), "__custom__"));
   target.replaceChildren(...options);
   if (TARGET_PRESETS.includes(chosen)) {
@@ -127,7 +144,7 @@ function renderModelOptions(chosenModel) {
     syncCustomProviderAndModel();
     return;
   }
-  const options = preset.models.map(id => new Option(id, id));
+  const options = preset.models.map((id) => new Option(id, id));
   options.push(new Option(t("modelCustomOption"), "__custom__"));
   modelPreset.replaceChildren(...options);
   if (preset.models.includes(chosenModel)) {
@@ -140,12 +157,12 @@ function renderModelOptions(chosenModel) {
 }
 
 function renderProviderOptions(chosenUrl, chosenModel) {
-  const options = PROVIDER_PRESETS.map(preset => new Option(preset.label(), preset.id));
+  const options = PROVIDER_PRESETS.map((preset) => new Option(preset.label(), preset.id));
   options.push(new Option(t("presetCustom"), "custom"));
   providerPreset.replaceChildren(...options);
 
   const normalizedUrl = normalizeApiBaseUrl(chosenUrl) ?? chosenUrl;
-  const matched = PROVIDER_PRESETS.find(preset => preset.url === normalizedUrl);
+  const matched = PROVIDER_PRESETS.find((preset) => preset.url === normalizedUrl);
   if (matched) {
     providerPreset.value = matched.id;
     apiBaseUrl.value = matched.url;
@@ -206,9 +223,17 @@ function renderOcrLanguageOptions(languages, chosen) {
 async function loadKeyStatus() {
   try {
     const { configured } = await nativeRequest({ command: "key_status" });
-    showStatus(keyStatus, configured ? t("keyStatusConfigured") : t("keyStatusMissing"), configured ? "done" : "idle");
+    showStatus(
+      keyStatus,
+      configured ? t("keyStatusConfigured") : t("keyStatusMissing"),
+      configured ? "done" : "idle",
+    );
   } catch (error) {
-    showStatus(keyStatus, error.message === "native_timeout" ? t("keyStatusTimeout") : errorText(error.message), "error");
+    showStatus(
+      keyStatus,
+      error.message === "native_timeout" ? t("keyStatusTimeout") : errorText(error.message),
+      "error",
+    );
   } finally {
     saveKey.disabled = false;
   }
@@ -232,13 +257,17 @@ saveKey.onclick = async () => {
     await saving;
     showStatus(keyStatus, t("keyStatusSaved"), "done");
   } catch (error) {
-    showStatus(keyStatus, error.message === "native_timeout" ? t("keyStatusSaveTimeout") : errorText(error.message), "error");
+    showStatus(
+      keyStatus,
+      error.message === "native_timeout" ? t("keyStatusSaveTimeout") : errorText(error.message),
+      "error",
+    );
   } finally {
     keyInput.disabled = false;
     saveKey.disabled = false;
   }
 };
-keyInput.onkeydown = event => {
+keyInput.onkeydown = (event) => {
   if (event.key === "Enter" && !event.isComposing) saveKey.click();
 };
 
@@ -258,17 +287,21 @@ testConnectionBtn.onclick = async () => {
   testConnectionBtn.disabled = true;
   showStatus(testStatus, t("testStatusTesting"), "busy");
   try {
-    await nativeRequest({
-      command: "test_connection",
-      apiBaseUrl: validated.normalizedUrl,
-      model: validated.normalizedModel
-    }, { signal: controller.signal });
+    await nativeRequest(
+      {
+        command: "test_connection",
+        apiBaseUrl: validated.normalizedUrl,
+        model: validated.normalizedModel,
+      },
+      { signal: controller.signal },
+    );
     if (testingController === controller) {
       showStatus(testStatus, t("testStatusSuccess"), "done");
     }
   } catch (error) {
     if (testingController === controller && error?.name !== "AbortError") {
-      const msg = error.message === "native_timeout" ? t("testStatusTimeout") : errorText(error.message);
+      const msg =
+        error.message === "native_timeout" ? t("testStatusTimeout") : errorText(error.message);
       showStatus(testStatus, msg, "error");
     }
   } finally {
@@ -327,7 +360,7 @@ model.oninput = () => {
   showStatus(testStatus, "", "idle");
 };
 
-byId("settings-form").onsubmit = async event => {
+byId("settings-form").onsubmit = async (event) => {
   event.preventDefault();
   let canonical = settings.target;
   let normalizedUrl = settings.apiBaseUrl;
@@ -350,7 +383,7 @@ byId("settings-form").onsubmit = async event => {
     ocrLanguage: ocrLanguage.value,
     apiBaseUrl: normalizedUrl,
     model: normalizedModel,
-    uiLanguage: uiLanguage.value
+    uiLanguage: uiLanguage.value,
   };
   save.disabled = true;
   try {
@@ -404,14 +437,16 @@ async function load() {
     loadedLanguages = languages;
     const chosen = ocrLanguage.value;
     renderOcrLanguageOptions(languages, chosen);
-    if (chosen !== ocrLanguage.value) byId("recognition-status").textContent = t("statusOcrLangUnavailable");
+    if (chosen !== ocrLanguage.value)
+      byId("recognition-status").textContent = t("statusOcrLangUnavailable");
   } catch (error) {
-    byId("recognition-status").textContent = error.message === "native_timeout"
-      ? t("statusOcrLangTimeout")
-      : errorText(error.message);
+    byId("recognition-status").textContent =
+      error.message === "native_timeout" ? t("statusOcrLangTimeout") : errorText(error.message);
   }
 }
 
 window.addEventListener("pagehide", () => testingController?.abort());
-void load().catch(() => { result.textContent = t("statusSettingsLoadFailed"); });
+void load().catch(() => {
+  result.textContent = t("statusSettingsLoadFailed");
+});
 void loadKeyStatus();

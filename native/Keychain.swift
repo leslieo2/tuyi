@@ -3,19 +3,21 @@ import Foundation
 import Security
 
 #if IMAGE_TRANSLATOR_TEST
-private let keyService = "com.local_image_translator.deepseek.test"
-let testKeychainID = ProcessInfo.processInfo.environment["IMAGE_TRANSLATOR_TEST_KEYCHAIN_ID"]
-    .flatMap { UUID(uuidString: $0) }
-private let keyAccount = (testKeychainID ?? UUID()).uuidString
+    private let keyService = "com.local_image_translator.deepseek.test"
+    let testKeychainID = ProcessInfo.processInfo.environment["IMAGE_TRANSLATOR_TEST_KEYCHAIN_ID"]
+        .flatMap { UUID(uuidString: $0) }
+    private let keyAccount = (testKeychainID ?? UUID()).uuidString
 #else
-private let keyService = "com.local_image_translator.deepseek"
-private let keyAccount = "manual-api-key"
+    private let keyService = "com.local_image_translator.deepseek"
+    private let keyAccount = "manual-api-key"
 #endif
 
 private func keyQuery(account: String = keyAccount) -> [String: Any] {
-    [kSecClass as String: kSecClassGenericPassword,
-     kSecAttrService as String: keyService,
-     kSecAttrAccount as String: account]
+    [
+        kSecClass as String: kSecClassGenericPassword,
+        kSecAttrService as String: keyService,
+        kSecAttrAccount as String: account
+    ]
 }
 
 func validKey(_ key: String) -> Bool {
@@ -30,7 +32,8 @@ func deepSeekKey() throws -> String {
     let status = SecItemCopyMatching(query as CFDictionary, &result)
     if status == errSecItemNotFound { throw HostError("missing_key") }
     guard status == errSecSuccess, let data = result as? Data,
-          let key = String(data: data, encoding: .utf8), validKey(key) else {
+        let key = String(data: data, encoding: .utf8), validKey(key)
+    else {
         throw HostError("keychain")
     }
     return key

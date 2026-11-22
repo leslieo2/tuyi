@@ -16,15 +16,17 @@ test("SessionCache enforces LRU eviction, hydrates, resets, and clears session s
   globalThis.chrome = {
     storage: {
       session: {
-        async get(key) { return { [key]: store.get(key) }; },
+        async get(key) {
+          return { [key]: store.get(key) };
+        },
         async set(values) {
           for (const [k, v] of Object.entries(values)) store.set(k, v);
         },
         async remove(keys) {
           for (const key of Array.isArray(keys) ? keys : [keys]) store.delete(key);
-        }
-      }
-    }
+        },
+      },
+    },
   };
 
   try {

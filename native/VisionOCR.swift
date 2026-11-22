@@ -25,16 +25,18 @@ func recognize(image encoded: String, language: String) throws -> (text: String,
         "public.tiff", "com.microsoft.bmp", "public.heic", "public.heif", "public.avif"
     ]
     guard let source = CGImageSourceCreateWithData(data as CFData, sourceOptions),
-          let type = CGImageSourceGetType(source), supportedTypes.contains(type as String),
-          let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, sourceOptions)
+        let type = CGImageSourceGetType(source), supportedTypes.contains(type as String),
+        let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, sourceOptions)
             as? [CFString: Any],
-          let width = properties[kCGImagePropertyPixelWidth] as? Int,
-          let height = properties[kCGImagePropertyPixelHeight] as? Int,
-          width > 0, height > 0 else { throw HostError("invalid_image", meta: meta) }
+        let width = properties[kCGImagePropertyPixelWidth] as? Int,
+        let height = properties[kCGImagePropertyPixelHeight] as? Int,
+        width > 0, height > 0
+    else { throw HostError("invalid_image", meta: meta) }
     meta.imageWidth = width
     meta.imageHeight = height
     guard width <= Limits.imageEdge, height <= Limits.imageEdge,
-          width * height <= Limits.imagePixels else { throw HostError("image_dimensions", meta: meta) }
+        width * height <= Limits.imagePixels
+    else { throw HostError("image_dimensions", meta: meta) }
 
     let request = VNRecognizeTextRequest()
     request.recognitionLevel = .accurate
@@ -67,7 +69,8 @@ func recognize(image encoded: String, language: String) throws -> (text: String,
     var lineCount = 0
     for observation in request.results ?? [] {
         guard let line = observation.topCandidates(1).first?.string.trimmingCharacters(in: .whitespacesAndNewlines),
-              !line.isEmpty else { continue }
+            !line.isEmpty
+        else { continue }
         let separator = text.isEmpty ? "" : "\n"
         guard text.utf8.count + separator.utf8.count + line.utf8.count <= Limits.sourceBytes else {
             meta.lineCount = lineCount

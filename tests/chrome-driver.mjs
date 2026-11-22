@@ -21,8 +21,11 @@ export async function launchChrome({ headful = false, binary, testPort, testKeyc
   const hostManifest = "com.local_image_translator.host.json";
   try {
     await mkdir(hosts);
-    const registered = join(process.env.HOME,
-      "Library/Application Support/Google/Chrome/NativeMessagingHosts", hostManifest);
+    const registered = join(
+      process.env.HOME,
+      "Library/Application Support/Google/Chrome/NativeMessagingHosts",
+      hostManifest,
+    );
     const installed = join(hosts, hostManifest);
     if (binary) {
       const manifest = JSON.parse(await readFile(registered, "utf8"));
@@ -34,28 +37,38 @@ export async function launchChrome({ headful = false, binary, testPort, testKeyc
     await rm(profile, { recursive: true, force: true });
     throw new Error("Run ./scripts/install.sh before Chrome testing.", { cause: error });
   }
-  const executable = process.env.TEST_CHROME_BIN ||
-    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+  const executable =
+    process.env.TEST_CHROME_BIN || "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
   const env = { ...process.env };
   delete env.DEEPSEEK_API_KEY;
   delete env.IMAGE_TRANSLATOR_TEST_PORT;
   delete env.IMAGE_TRANSLATOR_TEST_KEYCHAIN_ID;
   if (testPort !== undefined) env.IMAGE_TRANSLATOR_TEST_PORT = String(testPort);
   if (testKeychainID) env.IMAGE_TRANSLATOR_TEST_KEYCHAIN_ID = testKeychainID;
-  const child = spawn(executable, [
-    ...(headful ? [] : ["--headless=new"]),
-    "--remote-debugging-pipe", "--enable-unsafe-extension-debugging",
-    `--user-data-dir=${profile}`, "--no-first-run", "--no-default-browser-check",
-    "--disable-sync", "--disable-background-networking", "--disable-component-update",
-    "--window-size=960,800", "about:blank"
-  ], { stdio: ["ignore", "ignore", "ignore", "pipe", "pipe"], env });
+  const child = spawn(
+    executable,
+    [
+      ...(headful ? [] : ["--headless=new"]),
+      "--remote-debugging-pipe",
+      "--enable-unsafe-extension-debugging",
+      `--user-data-dir=${profile}`,
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-sync",
+      "--disable-background-networking",
+      "--disable-component-update",
+      "--window-size=960,800",
+      "about:blank",
+    ],
+    { stdio: ["ignore", "ignore", "ignore", "pipe", "pipe"], env },
+  );
 
   const pending = new Map();
   const targets = new Map();
   let sequence = 0;
   let input = "";
   child.stdio[4].setEncoding("utf8");
-  child.stdio[4].on("data", chunk => {
+  child.stdio[4].on("data", (chunk) => {
     input += chunk;
     let end;
     while ((end = input.indexOf("\0")) >= 0) {
@@ -68,7 +81,10 @@ export async function launchChrome({ headful = false, binary, testPort, testKeyc
         if (message.error) waiter.reject(new Error(`${waiter.method}: ${message.error.message}`));
         else waiter.resolve(message.result);
       }
-      if (message.method === "Target.targetCreated" || message.method === "Target.targetInfoChanged") {
+      if (
+        message.method === "Target.targetCreated" ||
+        message.method === "Target.targetInfoChanged"
+      ) {
         const info = message.params.targetInfo;
         targets.set(info.targetId, info);
       }
@@ -85,7 +101,7 @@ export async function launchChrome({ headful = false, binary, testPort, testKeyc
     }
     pending.clear();
   });
-  child.on("error", error => {
+  child.on("error", (error) => {
     for (const waiter of pending.values()) {
       clearTimeout(waiter.timer);
       waiter.reject(error);
@@ -102,7 +118,7 @@ export async function launchChrome({ headful = false, binary, testPort, testKeyc
         reject(new Error(`CDP timeout: ${method}`));
       }, 12_000);
       pending.set(id, { resolve, reject, timer, method });
-      child.stdio[3].write(JSON.stringify({ id, method, params, sessionId }) + "\0");
+      child.stdio[3].write(`${JSON.stringify({ id, method, params, sessionId })}\0`);
     });
   }
 
@@ -128,13 +144,18 @@ export async function launchChrome({ headful = false, binary, testPort, testKeyc
       invoke,
       async eval(expression, extra = {}) {
         const response = await invoke("Runtime.evaluate", {
-          expression, awaitPromise: true, returnByValue: true, ...extra
+          expression,
+          awaitPromise: true,
+          returnByValue: true,
+          ...extra,
         });
         if (response.exceptionDetails) {
-          throw new Error(response.exceptionDetails.exception?.description ?? response.exceptionDetails.text);
+          throw new Error(
+            response.exceptionDetails.exception?.description ?? response.exceptionDetails.text,
+          );
         }
         return response.result.value;
-      }
+      },
     };
   }
 

@@ -71,7 +71,9 @@
   "presetLmStudio": { "message": "LM Studio（本机）" },
   "labelApiBaseUrl": { "message": "服务地址" },
   "apiBaseUrlHelp": { "message": "填写云端或本机翻译服务的基础地址。" },
-  "apiBaseUrlInvalid": { "message": "请输入有效的 HTTPS 地址，或本机 HTTP 地址（如 http://127.0.0.1:11434/v1）。" },
+  "apiBaseUrlInvalid": {
+    "message": "请输入有效的 HTTPS 地址，或本机 HTTP 地址（如 http://127.0.0.1:11434/v1）。"
+  },
   "labelModel": { "message": "模型名称" },
   "modelCustomOption": { "message": "自定义模型名称…" },
   "modelInvalid": { "message": "请输入有效的模型名称（不含空格或换行）。" },
@@ -117,16 +119,26 @@
   "langDe": { "message": "德语" },
   "langEs": { "message": "西班牙语" },
 
-  "err_native_missing": { "message": "找不到或无法启动本地组件。请运行项目中的 ./scripts/install.sh，再重试。" },
+  "err_native_missing": {
+    "message": "找不到或无法启动本地组件。请运行项目中的 ./scripts/install.sh，再重试。"
+  },
   "err_native_failed": { "message": "本地组件未正常完成。请重试，或重新运行安装脚本。" },
   "err_native_timeout": { "message": "本地处理超时。请换用较小的图片或检查翻译服务后重试。" },
   "err_invalid_request": { "message": "请求参数无效。请检查设置后重试。" },
-  "err_image_read": { "message": "当前页面的图片无法读取。请上传、粘贴图片，或将 macOS 框选截图粘贴到面板。" },
-  "err_image_read_reload": { "message": "当前页面的图片无法读取。若刚重载扩展，请先刷新网页后重试；也可上传或粘贴截图。" },
+  "err_image_read": {
+    "message": "当前页面的图片无法读取。请上传、粘贴图片，或将 macOS 框选截图粘贴到面板。"
+  },
+  "err_image_read_reload": {
+    "message": "当前页面的图片无法读取。若刚重载扩展，请先刷新网页后重试；也可上传或粘贴截图。"
+  },
   "err_image_size": { "message": "图片超过 8 MiB。请裁剪或缩小后重试。" },
-  "err_image_dimensions": { "message": "图片超过 4,000 万像素或单边超过 12,000 像素。请裁剪或缩小后重试。" },
+  "err_image_dimensions": {
+    "message": "图片超过 4,000 万像素或单边超过 12,000 像素。请裁剪或缩小后重试。"
+  },
   "err_invalid_image": { "message": "图片损坏或格式不受支持。可另存为 PNG 或 JPEG 后重试。" },
-  "err_ocr_language": { "message": "当前设备不支持所选的识别语言。请在设置中选择自动检测或其他语言。" },
+  "err_ocr_language": {
+    "message": "当前设备不支持所选的识别语言。请在设置中选择自动检测或其他语言。"
+  },
   "err_ocr_failed": { "message": "未能完成识别。请尝试缩小图片或转换格式。" },
   "err_source_limit": { "message": "识别文字超过 16 KiB。请把图片分区裁剪后分别识别。" },
   "err_cloud_consent": { "message": "请通过图片右键菜单或侧栏的翻译按钮发起翻译。" },
@@ -137,13 +149,17 @@
   "err_request_timeout": { "message": "翻译服务响应超时。请检查服务状态，或用更短的文字重试。" },
   "err_http_auth": { "message": "翻译服务拒绝认证（401/403）。请核对 API 密钥。" },
   "err_http_balance": { "message": "API 账户余额不足或额度已用完（402）。" },
-  "err_http_not_found": { "message": "翻译服务未找到接口或模型（404）。请检查 API 地址和模型名称。" },
+  "err_http_not_found": {
+    "message": "翻译服务未找到接口或模型（404）。请检查 API 地址和模型名称。"
+  },
   "err_http_rate": { "message": "翻译服务限制请求速率（429）。请稍后重试。" },
   "err_http_server": { "message": "翻译服务发生服务端错误（5xx）。请稍后重试。" },
   "err_provider_error": { "message": "翻译服务未能完成请求。请稍后重试。" },
   "err_empty_translation": { "message": "翻译服务未返回译文。可以再次尝试翻译。" },
   "err_incomplete_stream": { "message": "翻译响应中途断开。已收到的片段仍可复制，也可重新翻译。" },
-  "err_translation_truncated": { "message": "达到模型的输出上限。已收到的片段仍可复制；可按区域识别后重试。" },
+  "err_translation_truncated": {
+    "message": "达到模型的输出上限。已收到的片段仍可复制；可按区域识别后重试。"
+  },
   "err_bad_response": { "message": "翻译响应格式无效。请稍后重试。" },
   "err_output_limit": { "message": "翻译响应超过大小上限。请按区域识别后重试。" },
   "err_http_status": { "message": "翻译服务请求失败（HTTP $1）。" }

@@ -1,7 +1,9 @@
 {
   "extName": { "message": "Tuyi · Image Translator" },
   "extShortName": { "message": "Tuyi" },
-  "extDescription": { "message": "Right-click web images to recognize text locally on macOS and translate via any OpenAI-compatible API." },
+  "extDescription": {
+    "message": "Right-click web images to recognize text locally on macOS and translate via any OpenAI-compatible API."
+  },
   "actionTitle": { "message": "Tuyi — Open side panel" },
   "menuTitle": { "message": "Translate Text in Image" },
 
@@ -9,7 +11,9 @@
   "btnSettings": { "message": "Settings" },
   "btnUpload": { "message": "Upload Image" },
   "btnPaste": { "message": "Paste Image" },
-  "inputHint": { "message": "Drop, upload, or paste an image, right-click a web image, or paste a " },
+  "inputHint": {
+    "message": "Drop, upload, or paste an image, right-click a web image, or paste a "
+  },
   "inputHintSuffix": { "message": " screenshot." },
   "statusInitial": { "message": "Right-click a web image, or upload/paste an image." },
   "btnCancel": { "message": "Cancel" },
@@ -27,7 +31,9 @@
   "labelDiagnostics": { "message": "Diagnostics" },
   "btnCopyDiagnostics": { "message": "Copy Diagnostics" },
   "diagnosticsEmpty": { "message": "No runs yet in this session." },
-  "diagnosticsPrivacyNote": { "message": "Session metadata only. Never stores images, text, or keys." },
+  "diagnosticsPrivacyNote": {
+    "message": "Session metadata only. Never stores images, text, or keys."
+  },
   "diagRouteApi": { "message": "API" },
   "diagRouteLocalSkip": { "message": "Local skip" },
   "diagRouteCache": { "message": "Cache" },
@@ -49,7 +55,9 @@
   "statusNoClipboardImage": { "message": "No image in clipboard. Copy or capture an image first." },
   "statusPasteHint": { "message": "Press ⌘V to paste an image from the clipboard." },
   "statusCopyFailed": { "message": "Could not write to clipboard. Please copy the text manually." },
-  "statusBgUnavailable": { "message": "Could not connect to extension background. Upload or paste an image instead." },
+  "statusBgUnavailable": {
+    "message": "Could not connect to extension background. Upload or paste an image instead."
+  },
 
   "optionsTitle": { "message": "Tuyi Settings" },
   "labelMode": { "message": "Mode" },
@@ -57,7 +65,9 @@
   "modeOcr": { "message": "OCR Only" },
   "labelTarget": { "message": "Target Language" },
   "targetCustomOption": { "message": "Custom language code…" },
-  "targetHelp": { "message": "Choose a target language or select Custom to enter a language code like en-US." },
+  "targetHelp": {
+    "message": "Choose a target language or select Custom to enter a language code like en-US."
+  },
   "targetInvalid": { "message": "Enter a valid language tag such as zh-Hans or ja." },
   "labelOcrLanguage": { "message": "Recognition Language" },
   "ocrAuto": { "message": "Auto-detect" },
@@ -71,7 +81,9 @@
   "presetLmStudio": { "message": "LM Studio (Local)" },
   "labelApiBaseUrl": { "message": "Service URL" },
   "apiBaseUrlHelp": { "message": "Base URL for a cloud or local translation service." },
-  "apiBaseUrlInvalid": { "message": "Enter a valid HTTPS URL or local HTTP URL (e.g. http://127.0.0.1:11434/v1)." },
+  "apiBaseUrlInvalid": {
+    "message": "Enter a valid HTTPS URL or local HTTP URL (e.g. http://127.0.0.1:11434/v1)."
+  },
   "labelModel": { "message": "Model" },
   "modelCustomOption": { "message": "Custom model name…" },
   "modelInvalid": { "message": "Enter a valid model name without spaces or line breaks." },
@@ -79,19 +91,31 @@
   "testStatusTesting": { "message": "Testing connection…" },
   "testStatusSuccess": { "message": "Connection succeeded." },
   "testStatusSaveKeyFirst": { "message": "Save your API key first before testing." },
-  "testStatusTimeout": { "message": "Connection test timed out. Check the service URL and network." },
+  "testStatusTimeout": {
+    "message": "Connection test timed out. Check the service URL and network."
+  },
   "btnSaveSettings": { "message": "Save Settings" },
   "statusSettingsSaved": { "message": "Saved." },
   "statusSettingsSaveFailed": { "message": "Failed to save settings. Please try again." },
-  "statusReselectMode": { "message": "Previous mode is unrecognized. Please select and save again." },
-  "statusOcrLangUnavailable": { "message": "Selected OCR language is no longer available. Please save again." },
-  "statusOcrLangTimeout": { "message": "Timed out loading OCR languages. Reopen Settings to retry." },
+  "statusReselectMode": {
+    "message": "Previous mode is unrecognized. Please select and save again."
+  },
+  "statusOcrLangUnavailable": {
+    "message": "Selected OCR language is no longer available. Please save again."
+  },
+  "statusOcrLangTimeout": {
+    "message": "Timed out loading OCR languages. Reopen Settings to retry."
+  },
   "statusSettingsLoadFailed": { "message": "Failed to load settings. Reopen this page." },
 
   "apiHeading": { "message": "Translation Service" },
-  "apiDescription": { "message": "When translating, only the recognized text is sent to your configured translation service." },
+  "apiDescription": {
+    "message": "When translating, only the recognized text is sent to your configured translation service."
+  },
   "labelApiKey": { "message": "API Key" },
-  "keyHelp": { "message": "Stored securely on this Mac; optional for unauthenticated local services." },
+  "keyHelp": {
+    "message": "Stored securely on this Mac; optional for unauthenticated local services."
+  },
   "btnSaveKey": { "message": "Save Key" },
   "keyStatusChecking": { "message": "Checking key status…" },
   "keyStatusConfigured": { "message": "Configured." },
@@ -103,7 +127,9 @@
   "keyStatusSaveTimeout": { "message": "Timed out saving key. Check macOS Keychain and retry." },
 
   "cacheHeading": { "message": "Cache" },
-  "cacheDescription": { "message": "Recognized text and translations are cached only for the current browser session." },
+  "cacheDescription": {
+    "message": "Recognized text and translations are cached only for the current browser session."
+  },
   "btnClearCache": { "message": "Clear Cache" },
   "statusCacheCleared": { "message": "Cache cleared." },
   "statusCacheClearFailed": { "message": "Failed to clear cache. Please try again." },
@@ -117,34 +143,74 @@
   "langDe": { "message": "German" },
   "langEs": { "message": "Spanish" },
 
-  "err_native_missing": { "message": "Native helper not found or failed to start. Run ./scripts/install.sh and try again." },
-  "err_native_failed": { "message": "Native helper exited unexpectedly. Retry or re-run ./scripts/install.sh." },
-  "err_native_timeout": { "message": "Local operation timed out. Try a smaller image or check the translation service." },
+  "err_native_missing": {
+    "message": "Native helper not found or failed to start. Run ./scripts/install.sh and try again."
+  },
+  "err_native_failed": {
+    "message": "Native helper exited unexpectedly. Retry or re-run ./scripts/install.sh."
+  },
+  "err_native_timeout": {
+    "message": "Local operation timed out. Try a smaller image or check the translation service."
+  },
   "err_invalid_request": { "message": "Invalid request parameters. Check Settings and retry." },
-  "err_image_read": { "message": "Cannot read this page image. Upload, paste an image, or paste a macOS screenshot." },
-  "err_image_read_reload": { "message": "Cannot read this page image. If you just reloaded the extension, refresh the page first, or upload/paste a screenshot." },
+  "err_image_read": {
+    "message": "Cannot read this page image. Upload, paste an image, or paste a macOS screenshot."
+  },
+  "err_image_read_reload": {
+    "message": "Cannot read this page image. If you just reloaded the extension, refresh the page first, or upload/paste a screenshot."
+  },
   "err_image_size": { "message": "Image exceeds 8 MiB. Crop or resize it and retry." },
-  "err_image_dimensions": { "message": "Image exceeds 40M pixels or 12,000 px per side. Resize it and retry." },
-  "err_invalid_image": { "message": "Corrupted or unsupported image. Save as PNG or JPEG and retry." },
-  "err_ocr_language": { "message": "Selected recognition language is unsupported on this Mac. Choose Auto-detect or another language." },
+  "err_image_dimensions": {
+    "message": "Image exceeds 40M pixels or 12,000 px per side. Resize it and retry."
+  },
+  "err_invalid_image": {
+    "message": "Corrupted or unsupported image. Save as PNG or JPEG and retry."
+  },
+  "err_ocr_language": {
+    "message": "Selected recognition language is unsupported on this Mac. Choose Auto-detect or another language."
+  },
   "err_ocr_failed": { "message": "OCR failed. Try resizing or converting the image." },
-  "err_source_limit": { "message": "Recognized text exceeds 16 KiB. Crop the image into smaller sections." },
-  "err_cloud_consent": { "message": "Start translation from the image context menu or the Translate button." },
+  "err_source_limit": {
+    "message": "Recognized text exceeds 16 KiB. Crop the image into smaller sections."
+  },
+  "err_cloud_consent": {
+    "message": "Start translation from the image context menu or the Translate button."
+  },
   "err_missing_key": { "message": "Save your API key in Settings, then click Translate Text." },
   "err_invalid_key": { "message": "Enter a valid API key without spaces or line breaks." },
   "err_keychain": { "message": "Cannot access macOS Keychain. Unlock it and retry." },
-  "err_network": { "message": "Connection to the translation service failed. Check your network and API URL." },
-  "err_request_timeout": { "message": "Translation request timed out. Check the service or try shorter text." },
-  "err_http_auth": { "message": "Translation service rejected authentication (401/403). Verify your API key." },
+  "err_network": {
+    "message": "Connection to the translation service failed. Check your network and API URL."
+  },
+  "err_request_timeout": {
+    "message": "Translation request timed out. Check the service or try shorter text."
+  },
+  "err_http_auth": {
+    "message": "Translation service rejected authentication (401/403). Verify your API key."
+  },
   "err_http_balance": { "message": "API account balance or quota exhausted (402)." },
-  "err_http_not_found": { "message": "Translation endpoint or model not found (404). Check API Base URL and Model." },
-  "err_http_rate": { "message": "Translation service rate limit reached (429). Please retry shortly." },
+  "err_http_not_found": {
+    "message": "Translation endpoint or model not found (404). Check API Base URL and Model."
+  },
+  "err_http_rate": {
+    "message": "Translation service rate limit reached (429). Please retry shortly."
+  },
   "err_http_server": { "message": "Translation service server error (5xx). Please retry shortly." },
-  "err_provider_error": { "message": "Translation service could not complete the request. Please retry." },
-  "err_empty_translation": { "message": "Translation service returned empty output. You can retry." },
-  "err_incomplete_stream": { "message": "Translation stream interrupted. Partial text can be copied, or retry." },
-  "err_translation_truncated": { "message": "Model output limit reached. Partial text can be copied; try a smaller region." },
+  "err_provider_error": {
+    "message": "Translation service could not complete the request. Please retry."
+  },
+  "err_empty_translation": {
+    "message": "Translation service returned empty output. You can retry."
+  },
+  "err_incomplete_stream": {
+    "message": "Translation stream interrupted. Partial text can be copied, or retry."
+  },
+  "err_translation_truncated": {
+    "message": "Model output limit reached. Partial text can be copied; try a smaller region."
+  },
   "err_bad_response": { "message": "Invalid translation response format. Please retry." },
-  "err_output_limit": { "message": "Translation response exceeded size limit. Try translating a smaller region." },
+  "err_output_limit": {
+    "message": "Translation response exceeded size limit. Try translating a smaller region."
+  },
   "err_http_status": { "message": "Translation request failed (HTTP $1)." }
 }

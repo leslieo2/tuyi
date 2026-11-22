@@ -21,9 +21,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - run: npm install --no-audit --no-fund
+          cache: "npm"
+      - run: npm ci --no-audit --no-fund
+      - name: Ensure ShellCheck is installed
+        run: command -v shellcheck >/dev/null || brew install shellcheck
+      - run: npm run lint
       - run: npm test
       - run: npm run test:native
       - env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
         run: npx semantic-release

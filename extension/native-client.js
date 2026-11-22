@@ -1,9 +1,12 @@
 import { HOST, MAX_TRANSLATION_BYTES } from "./config.js";
 
 const terminals = {
-  languages: "languages", ocr: "ocr", translate: "done",
-  key_status: "key_status", set_key: "key_status",
-  test_connection: "test_connection"
+  languages: "languages",
+  ocr: "ocr",
+  translate: "done",
+  key_status: "key_status",
+  set_key: "key_status",
+  test_connection: "test_connection",
 };
 
 export function nativeRequest(request, { signal, onDelta = () => {} } = {}) {
@@ -27,7 +30,13 @@ export function nativeRequest(request, { signal, onDelta = () => {} } = {}) {
     const onAbort = () => finish(new DOMException("Aborted", "AbortError"));
     const timer = setTimeout(
       () => finish(new Error("native_timeout")),
-      command === "translate" ? 145_000 : command === "ocr" ? 60_000 : command === "test_connection" ? 25_000 : 15_000
+      command === "translate"
+        ? 145_000
+        : command === "ocr"
+          ? 60_000
+          : command === "test_connection"
+            ? 25_000
+            : 15_000,
     );
 
     function finish(error, value) {
@@ -45,7 +54,7 @@ export function nativeRequest(request, { signal, onDelta = () => {} } = {}) {
       const missing = /not found|forbidden|access.*denied|failed to start/i.test(error);
       finish(new Error(missing ? "native_missing" : "native_failed"));
     });
-    port.onMessage.addListener(message => {
+    port.onMessage.addListener((message) => {
       if (settled) return;
       if (!message || message.v !== 1) {
         finish(new Error("native_failed"));
@@ -55,17 +64,23 @@ export function nativeRequest(request, { signal, onDelta = () => {} } = {}) {
         const error = new Error(message.code);
         if (message.meta && typeof message.meta === "object") error.meta = message.meta;
         finish(error);
-      } else if (message.type === "delta" && command === "translate" && typeof message.text === "string") {
+      } else if (
+        message.type === "delta" &&
+        command === "translate" &&
+        typeof message.text === "string"
+      ) {
         outputBytes += encoder.encode(message.text).byteLength;
         if (outputBytes > MAX_TRANSLATION_BYTES) finish(new Error("output_limit"));
         else onDelta(message.text);
       } else if (message.type === terminals[command]) {
-        const valid = message.type === "done" ||
+        const valid =
+          message.type === "done" ||
           (message.type === "key_status" && typeof message.configured === "boolean") ||
           (message.type === "test_connection" && typeof message.ok === "boolean") ||
           (message.type === "ocr" && typeof message.text === "string") ||
-          (message.type === "languages" && Array.isArray(message.languages) &&
-            message.languages.every(language => typeof language === "string"));
+          (message.type === "languages" &&
+            Array.isArray(message.languages) &&
+            message.languages.every((language) => typeof language === "string"));
         if (valid) finish(null, message);
         else finish(new Error("native_failed"));
       } else {

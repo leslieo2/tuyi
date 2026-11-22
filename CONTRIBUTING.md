@@ -6,7 +6,8 @@ Thanks for your interest in contributing to **Tuyi**!
 
 - **macOS 13.0+** with **Xcode Command Line Tools** (`xcode-select --install`)
 - **Google Chrome 123+**
-- **Node.js 20+** (for running the test suite)
+- **Node.js 20+** (for linting, formatting, and running the test suite)
+- **ShellCheck** (`brew install shellcheck`, optional locally, enforced in CI for `scripts/*.sh`)
 
 ## Project Structure
 
@@ -29,6 +30,18 @@ To create a universal (`arm64` + `x86_64`) macOS release archive in `.build/`:
 ```
 
 You can also store an API key from the terminal via `./scripts/set-deepseek-key.sh`.
+
+## Linting & Formatting
+
+Install dev dependencies once with `npm ci` (or `npm install`):
+
+```sh
+# Run all linters & format checks (ESLint, Prettier, swift-format, ShellCheck)
+npm run lint
+
+# Auto-fix ESLint, Prettier, and swift-format issues
+npm run format
+```
 
 ## Running Tests
 
@@ -55,7 +68,7 @@ This repository uses [semantic-release](https://github.com/semantic-release/sema
 - `BREAKING CHANGE:` / `feat!: ...` → major release (`x.0.0`)
 - `docs:`, `chore:`, `test:`, `refactor:` → no new release
 
-`semantic-release` updates `package.json`, `extension/manifest.json`, and `CHANGELOG.md` automatically, and attaches `tuyi-v*-macos.zip` to the GitHub Release. After a release publishes, update `Casks/tuyi.rb` in [`leslieo2/homebrew-tap`](https://github.com/leslieo2/homebrew-tap) with the new version and SHA-256.
+`semantic-release` updates `package.json`, `extension/manifest.json`, and `CHANGELOG.md` automatically, attaches `tuyi-v*-macos.zip` to the GitHub Release, and runs `scripts/update-homebrew-tap.mjs` to update `Casks/tuyi.rb` in [`leslieo2/homebrew-tap`](https://github.com/leslieo2/homebrew-tap) with the new version and SHA-256. This automated tap update requires a `HOMEBREW_TAP_TOKEN` repository secret in `leslieo2/tuyi` with `Contents: Read and write` permission on `leslieo2/homebrew-tap` (otherwise the step logs a warning and the cask must be updated manually).
 
 ## Guidelines
 

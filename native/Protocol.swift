@@ -76,7 +76,8 @@ func readExactly(_ count: Int) throws -> Data {
     var collected = Data()
     while collected.count < count {
         guard let part = try FileHandle.standardInput.read(upToCount: count - collected.count),
-              !part.isEmpty else { throw HostError("invalid_request") }
+            !part.isEmpty
+        else { throw HostError("invalid_request") }
         collected.append(part)
     }
     return collected
@@ -88,7 +89,8 @@ func readRequest() throws -> Request {
     guard count > 0, count <= Limits.frameBytes else { throw HostError("invalid_request") }
     let payload = try readExactly(count)
     guard let request = try? JSONDecoder().decode(Request.self, from: payload),
-          request.v == 1 else { throw HostError("invalid_request") }
+        request.v == 1
+    else { throw HostError("invalid_request") }
     return request
 }
 

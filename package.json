@@ -7,11 +7,17 @@
     "node": ">=20"
   },
   "scripts": {
-    "test": "node --test tests/config.test.mjs tests/native-client.test.mjs tests/cache.test.mjs tests/i18n.test.mjs tests/diagnostics.test.mjs",
+    "test": "node --test tests/config.test.mjs tests/native-client.test.mjs tests/cache.test.mjs tests/i18n.test.mjs tests/diagnostics.test.mjs tests/homebrew-tap.test.mjs",
     "test:native": "bash scripts/test-native.sh",
     "test:chrome": "bash scripts/test-chrome.sh",
     "test:deepseek": "node tests/deepseek-live.mjs",
     "test:chrome-menu": "bash scripts/test-chrome-menu.sh",
+    "lint": "npm run lint:js && npm run lint:format && npm run lint:swift && npm run lint:sh",
+    "lint:js": "eslint .",
+    "lint:format": "prettier --check .",
+    "lint:swift": "xcrun swift-format lint --strict native/*.swift tests/*.swift",
+    "lint:sh": "shellcheck -x scripts/*.sh",
+    "format": "eslint --fix . && prettier --write . && xcrun swift-format format -i native/*.swift tests/*.swift",
     "release": "semantic-release"
   },
   "devDependencies": {
