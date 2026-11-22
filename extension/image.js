@@ -40,15 +40,33 @@ function canvasToBase64(canvas, signal) {
   })();
 }
 
-async function captureCroppedRegion(windowId, rect, signal) {
-  signal.throwIfAborted();
-  let dataUrl;
-  try {
-    dataUrl = await chrome.tabs.captureVisibleTab(windowId, { format: "png" });
-  } catch (error) {
-    console.warn("captureVisibleTab failed:", error);
-    throw new Error("image_read", { cause: error });
+async function captureSelectedTab(tabId, windowId, signal) {
+  let switchedTabs = false;
+  const onActivated = (tab) => {
+    if (tab.windowId === windowId && tab.tabId !== tabId) switchedTabs = true;
+  };
+  async function checkActiveTab() {
+    const [tab] = await chrome.tabs.query({ active: true, windowId });
+    signal.throwIfAborted();
+    if (switchedTabs || tab?.id !== tabId) throw new Error("image_read");
   }
+
+  chrome.tabs.onActivated.addListener(onActivated);
+  try {
+    await checkActiveTab();
+    const dataUrl = await chrome.tabs.captureVisibleTab(windowId, { format: "png" });
+    await checkActiveTab();
+    return dataUrl;
+  } catch (error) {
+    signal.throwIfAborted();
+    throw new Error("image_read", { cause: error });
+  } finally {
+    chrome.tabs.onActivated.removeListener(onActivated);
+  }
+}
+
+async function captureCroppedRegion(tabId, windowId, rect, signal) {
+  const dataUrl = await captureSelectedTab(tabId, windowId, signal);
   signal.throwIfAborted();
 
   const bitmap = await createImageBitmap(await (await fetch(dataUrl)).blob());
@@ -95,7 +113,7 @@ export async function readPageImage({ tabId, windowId, frameId, source, page }, 
     signal.throwIfAborted();
     if (typeof response?.base64 === "string") return response.base64;
     if (response?.code === "capture_visible" && response.rect && Number.isInteger(windowId)) {
-      return await captureCroppedRegion(windowId, response.rect, signal);
+      return await captureCroppedRegion(tabId, windowId, response.rect, signal);
     }
     throw new Error(response?.code ?? (missingReceiver ? "image_read_reload" : "image_read"));
   } finally {

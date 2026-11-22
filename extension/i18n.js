@@ -13,15 +13,12 @@ export function displayLocaleTag(uiLocale = activeLocale) {
 }
 
 export async function initI18n(preference = "auto") {
-  activeLocale = resolveUiLocale(preference);
-  if (
-    !cache.has(activeLocale) &&
-    globalThis.chrome?.runtime?.getURL &&
-    typeof fetch === "function"
-  ) {
+  const locale = resolveUiLocale(preference);
+  activeLocale = locale;
+  if (!cache.has(locale) && globalThis.chrome?.runtime?.getURL && typeof fetch === "function") {
     try {
-      const response = await fetch(chrome.runtime.getURL(`_locales/${activeLocale}/messages.json`));
-      if (response.ok) cache.set(activeLocale, await response.json());
+      const response = await fetch(chrome.runtime.getURL(`_locales/${locale}/messages.json`));
+      if (response.ok) cache.set(locale, await response.json());
     } catch {
       // Fall back to chrome.i18n or key fallback.
     }

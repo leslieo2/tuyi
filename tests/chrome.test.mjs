@@ -117,6 +117,15 @@ test(
     }
 
     const options = await openExtensionPage("options.html");
+    await options.eval('chrome.storage.local.set({uiLanguage: "zh_CN"})');
+    await options.invoke("Page.reload");
+    await waitFor(
+      () =>
+        options
+          .eval('document.querySelector("#ui-language")?.value === "zh_CN"')
+          .catch(() => false),
+      "localized translation mode",
+    );
     assert.equal(await options.eval('document.body.innerText.includes("Apple Vision")'), false);
     assert.equal(
       await options.eval('document.querySelector("#mode option[value=translate]").textContent'),
@@ -270,10 +279,56 @@ test(
     await waitFor(() => panel.eval(`${$status} === "翻译完成。"`), "explicit upload translation");
     assert.equal(requests, 4);
 
+    const japaneseImage = JSON.stringify(readFileSync(fixture("ja")).toString("base64"));
+    await panel.eval(`(() => {
+    const bytes = Uint8Array.from(atob(${japaneseImage}), c => c.charCodeAt(0));
+    const image = new Blob([bytes], { type: "image/png" });
+    globalThis.clipboardItem = { types: ["image/png"], getType: async () => image };
+    navigator.clipboard.read = () => new Promise(resolve => {
+      globalThis.finishClipboardRead = () => resolve([clipboardItem]);
+    });
+    globalThis.pasteJob = document.querySelector("#paste").onclick();
+  })()`);
+    await click("#clear");
+    const clearedStatus = await panel.eval($status);
+    await panel.eval("(async () => { finishClipboardRead(); await pasteJob; })()");
+    assert.equal(await panel.eval($status), clearedStatus);
+    assert.equal(await panel.eval($original), "");
+
+    await panel.eval(`(() => {
+    navigator.clipboard.read = async () => [{
+      types: ["image/png"],
+      getType: () => new Promise(resolve => {
+        globalThis.finishClipboardImage = async () => resolve(await clipboardItem.getType());
+      })
+    }];
+    globalThis.pasteJob = document.querySelector("#paste").onclick();
+  })()`);
+    await waitFor(
+      () => panel.eval('typeof finishClipboardImage === "function"'),
+      "clipboard image retrieval is in progress",
+    );
+    assert.equal(await panel.eval('document.querySelector("#cancel").hidden'), false);
+    await click("#cancel");
+    await panel.eval("(async () => { await finishClipboardImage(); await pasteJob; })()");
+    assert.match(await panel.eval($status), /已取消/);
+    assert.equal(await panel.eval($original), "");
+
+    await panel.eval("navigator.clipboard.read = async () => [clipboardItem]");
+    await click("#paste");
+    await waitFor(
+      () =>
+        panel.eval(
+          `${$status} === "识别完成。" && ${$original}.includes("電車は七時に出発します")`,
+        ),
+      "the Paste button recognizes the clipboard image",
+    );
+    await click("#clear");
+
     await options.eval("chrome.storage.local.set({cloudConsent: 1})");
     // Dispatch a paste carrying a synthetic image; the OS clipboard is untouched.
     await panel.eval(`(() => {
-    const bytes = Uint8Array.from(atob(${JSON.stringify(readFileSync(fixture("ja")).toString("base64"))}), c => c.charCodeAt(0));
+    const bytes = Uint8Array.from(atob(${japaneseImage}), c => c.charCodeAt(0));
     const clipboardData = new DataTransfer();
     clipboardData.items.add(new File([bytes], "japanese.png", { type: "image/png" }));
     document.dispatchEvent(new ClipboardEvent("paste", { clipboardData, cancelable: true }));

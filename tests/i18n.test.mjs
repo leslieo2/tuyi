@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { test } from "node:test";
-import { displayLocaleTag, resolveUiLocale } from "../extension/i18n.js";
+import { displayLocaleTag, initI18n, resolveUiLocale, t as translate } from "../extension/i18n.js";
 import { root } from "./helpers.mjs";
 
 function loadMessages(locale) {
@@ -33,4 +33,29 @@ test("resolveUiLocale and displayLocaleTag map browser locales and explicit over
   globalThis.chrome = { i18n: { getUILanguage: () => "zh-CN" } };
   assert.equal(resolveUiLocale("auto"), "zh_CN");
   delete globalThis.chrome;
+});
+
+test("overlapping locale loads cache each dictionary under its requested language", async (t) => {
+  globalThis.chrome = { runtime: { getURL: (path) => path } };
+  t.after(() => delete globalThis.chrome);
+  const response = (locale) => ({ ok: true, json: async () => loadMessages(locale) });
+  let finishEnglishLoad;
+  const englishResponse = new Promise((complete) => {
+    finishEnglishLoad = complete;
+  });
+  const fetchMessages = t.mock.method(globalThis, "fetch", async (url) =>
+    url.includes("/en/") ? englishResponse : response("zh_CN"),
+  );
+
+  const englishLoad = initI18n("en");
+  await initI18n("zh_CN");
+  const chineseTitle = loadMessages("zh_CN").menuTitle.message;
+  assert.equal(translate("menuTitle"), chineseTitle);
+
+  finishEnglishLoad(response("en"));
+  await englishLoad;
+  assert.equal(translate("menuTitle"), chineseTitle);
+  await initI18n("en");
+  assert.equal(translate("menuTitle"), loadMessages("en").menuTitle.message);
+  assert.equal(fetchMessages.mock.callCount(), 2);
 });

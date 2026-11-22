@@ -34,6 +34,7 @@ The Chrome Native Messaging manifest restricts `allowed_origins` to the extensio
 ## Boundaries & Limits
 
 - The content script records `WeakRef` image candidates only on trusted `contextmenu` events, draws pixels only on read, releases the canvas immediately afterward, and clears pending selections on `pointerdown`, `keydown`, `pagehide`, or after 30 seconds. Image URLs are never re-fetched.
+- Screenshot fallback requires the selected tab to be active in its window throughout capture. A tab switch during capture produces an image read error.
 - Input images are limited to **8 MiB**, **40 million pixels**, and **12,000 px** per side. Before Vision OCR, images are downscaled so the longest edge is at most **4,096 px**. Page snapshots encode as PNG and fall back to JPEG if over 8 MiB; uploads/pastes support PNG, JPEG, WebP, GIF, TIFF, BMP, HEIC, HEIF, and AVIF (first frame).
 - Timeouts: page image read ~12 s, OCR ~60 s, HTTP request idle ~35 s, HTTP resource ~120 s (host alarm 150 s). Limits: source text **16 KiB**, translated output **48 KiB**, `max_tokens: 4096`.
 - `scripts/install.sh` registers the host manifest in Google Chrome's default user data directory; custom `--user-data-dir` profiles require copying the manifest into that profile's `NativeMessagingHosts/`.

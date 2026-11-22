@@ -16,18 +16,16 @@ function clearPending(windowId) {
   void chrome.storage.session?.remove(pendingKey(windowId)).catch(() => {});
 }
 
-async function takePending(windowId) {
-  const cached = pending.get(windowId);
-  if (cached) {
-    clearPending(windowId);
-    return cached.expiresAt > Date.now() ? cached.message : null;
+async function deliverPending(windowId, panel) {
+  let entry = pending.get(windowId);
+  if (!entry) {
+    const key = pendingKey(windowId);
+    const stored = await chrome.storage.session?.get(key).catch(() => null);
+    entry = stored?.[key];
   }
-  const key = pendingKey(windowId);
-  const stored = await chrome.storage.session?.get(key).catch(() => null);
-  const entry = stored?.[key];
-  if (!entry) return null;
-  void chrome.storage.session?.remove(key).catch(() => {});
-  return entry.expiresAt > Date.now() ? entry.message : null;
+  if (!entry || panels.get(windowId) !== panel || panel.receivedSelection) return;
+  if (entry.expiresAt > Date.now() && !deliver(windowId, entry.message)) return;
+  clearPending(windowId);
 }
 
 async function syncMenuTitle() {
@@ -56,10 +54,11 @@ chrome.storage.onChanged.addListener((changes, area) => {
 });
 
 function deliver(windowId, message) {
-  const port = panels.get(windowId);
-  if (!port) return false;
+  const panel = panels.get(windowId);
+  if (!panel) return false;
   try {
-    port.postMessage(message);
+    panel.port.postMessage(message);
+    panel.receivedSelection = true;
     return true;
   } catch {
     panels.delete(windowId);
@@ -107,6 +106,7 @@ chrome.runtime.onConnect.addListener((port) => {
   if (port.name !== "translator-panel" || port.sender?.url !== chrome.runtime.getURL("panel.html"))
     return;
   let windowId;
+  const panel = { port, receivedSelection: false };
   port.onMessage.addListener((message) => {
     if (
       windowId !== undefined ||
@@ -116,13 +116,11 @@ chrome.runtime.onConnect.addListener((port) => {
     )
       return;
     windowId = message.windowId;
-    panels.set(windowId, port);
-    void takePending(windowId).then((queued) => {
-      if (queued && panels.get(windowId) === port) deliver(windowId, queued);
-    });
+    panels.set(windowId, panel);
+    void deliverPending(windowId, panel);
   });
   port.onDisconnect.addListener(() => {
-    if (panels.get(windowId) === port) panels.delete(windowId);
+    if (panels.get(windowId) === panel) panels.delete(windowId);
   });
 });
 

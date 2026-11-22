@@ -209,6 +209,16 @@ test("test_connection validates endpoint, handles HTTP errors, and returns ok on
     assert.equal(received.stream, false);
     assert.equal(received.model, "gpt-4o-mini");
     assert.equal(Object.hasOwn(received, "thinking"), false);
+    const probe = { command: "test_connection", model: "local-model" };
+    assert.deepEqual(
+      await ask({ ...probe, apiBaseUrl: "http://[::1]:11434/v1" }, { port: service.port }),
+      [{ v: 1, type: "test_connection", ok: true }],
+    );
+    assert.deepEqual(
+      await ask({ ...probe, apiBaseUrl: "http://[::2]:11434/v1" }, { port: service.port }),
+      error("invalid_request"),
+    );
+    assert.equal(trial, 3);
   } finally {
     await service.close();
   }

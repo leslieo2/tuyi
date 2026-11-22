@@ -4,7 +4,7 @@ import NaturalLanguage
 private let deepSeekHost = "api.deepseek.com"
 private let defaultApiBaseUrl = "https://api.deepseek.com"
 private let defaultModel = "deepseek-flash"
-private let loopbackHosts: Set<String> = ["127.0.0.1", "localhost", "::1"]
+private let loopbackHosts: Set<String> = ["127.0.0.1", "localhost", "::1", "[::1]"]
 
 private final class RefuseRedirects: NSObject, URLSessionTaskDelegate {
     func urlSession(

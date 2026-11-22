@@ -17,6 +17,7 @@ const ocrCache = new SessionCache("cache_ocr", 25);
 const translationCache = new SessionCache("cache_translation", 25);
 const diagnostics = createDiagnosticsStore();
 let active;
+let pendingPaste;
 let panelPort;
 let preferences;
 
@@ -36,9 +37,10 @@ function renderDiagnostics() {
 
 function refreshButtons() {
   const translationEnabled = preferences?.mode === "translate";
-  byId("cancel").hidden = !active;
+  const busy = Boolean(active || pendingPaste);
+  byId("cancel").hidden = !busy;
   byId("retry").hidden = !translationEnabled;
-  byId("retry").disabled = !translationEnabled || Boolean(active) || !original.value;
+  byId("retry").disabled = !translationEnabled || busy || !original.value;
   const resultMode = active?.settings?.mode ?? preferences?.mode;
   byId("translation-result").hidden = resultMode !== "translate" && !translation.value;
   byId("copy-original").disabled = !original.value;
@@ -48,6 +50,7 @@ function refreshButtons() {
 function stop() {
   const current = active;
   active = undefined;
+  pendingPaste = undefined;
   if (current?.run && current.run.outcome === "running") {
     diagnostics.finishRun(current.run, "cancelled");
     renderDiagnostics();
@@ -236,7 +239,7 @@ function processImage(acquire, { translateAfterRecognition = false, trigger = "u
 }
 
 function retry() {
-  if (preferences?.mode !== "translate" || active || !original.value) return;
+  if (preferences?.mode !== "translate" || active || pendingPaste || !original.value) return;
   translation.value = "";
   start((settings, signal, job) => translate(settings, signal, job), { trigger: "retry" });
 }
@@ -294,18 +297,30 @@ fileInput.onchange = () => {
   if (file) processImage((signal) => readFile(file, signal), { trigger: "upload" });
 };
 byId("paste").onclick = async () => {
+  stop();
+  const read = {};
+  pendingPaste = read;
+  refreshButtons();
+  status(t("statusReadingImage"), "busy");
   try {
     const items = await navigator.clipboard.read();
+    if (pendingPaste !== read) return;
     for (const item of items) {
       const type = item.types.find((entry) => entry.startsWith("image/"));
       if (!type) continue;
       const blob = await item.getType(type);
+      if (pendingPaste !== read) return;
       processImage((signal) => readFile(blob, signal), { trigger: "paste" });
       return;
     }
     status(t("statusNoClipboardImage"), "empty");
   } catch {
-    status(t("statusPasteHint"));
+    if (pendingPaste === read) status(t("statusPasteHint"));
+  } finally {
+    if (pendingPaste === read) {
+      pendingPaste = undefined;
+      refreshButtons();
+    }
   }
 };
 document.addEventListener("paste", (event) => {
