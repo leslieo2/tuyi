@@ -7,7 +7,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "test": "node --test tests/config.test.mjs tests/native-client.test.mjs tests/cache.test.mjs tests/i18n.test.mjs",
+    "test": "node --test tests/config.test.mjs tests/native-client.test.mjs tests/cache.test.mjs tests/i18n.test.mjs tests/diagnostics.test.mjs",
     "test:native": "bash scripts/test-native.sh",
     "test:chrome": "bash scripts/test-chrome.sh",
     "test:deepseek": "node tests/deepseek-live.mjs",
@@ -15,10 +15,15 @@
     "release": "semantic-release"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/exec": "^6.0.3",
     "@semantic-release/git": "^10.0.1",
     "@semantic-release/github": "^11.0.0",
+    "eslint": "^10.15.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.14.0",
+    "prettier": "^3.10.1",
     "semantic-release": "^24.0.0"
   }
 }

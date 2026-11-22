@@ -44,6 +44,19 @@
     <button id="retry" class="primary" type="button" data-i18n="btnTranslateText" disabled hidden>翻译识别文字</button>
     <button id="clear" type="button" data-i18n="btnClear">清除</button>
   </div>
+  <details id="diagnostics" class="surface diagnostics">
+    <summary class="diagnostics-head">
+      <span data-i18n="labelDiagnostics">诊断信息</span>
+      <span id="diagnostics-summary" class="muted"></span>
+    </summary>
+    <div class="diagnostics-body">
+      <div class="actions">
+        <button id="copy-diagnostics" type="button" data-i18n="btnCopyDiagnostics" disabled>复制诊断信息</button>
+        <span class="muted" data-i18n="diagnosticsPrivacyNote">仅保留当前会话元数据，不含图片、文字或密钥。</span>
+      </div>
+      <pre id="diagnostics-output" data-i18n="diagnosticsEmpty">当前会话尚无运行记录。</pre>
+    </div>
+  </details>
   <script type="module" src="panel.js"></script>
 </body>
 </html>

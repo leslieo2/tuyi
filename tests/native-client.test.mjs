@@ -81,4 +81,14 @@ test("handles abort, invalid messages, missing host and native errors", async ()
   const testReply = nativeRequest({ command: "test_connection", apiBaseUrl: "https://api.openai.com/v1", model: "gpt-4o-mini" });
   checked.send({ v: 1, type: "test_connection", ok: true });
   assert.deepEqual(await testReply, { v: 1, type: "test_connection", ok: true });
+
+  const withMeta = connect();
+  const diagDone = nativeRequest({ command: "translate", diagnostics: true });
+  withMeta.send({ v: 1, type: "done", meta: { route: "api", httpStatus: 200 } });
+  assert.deepEqual(await diagDone, { v: 1, type: "done", meta: { route: "api", httpStatus: 200 } });
+
+  const failedWithMeta = connect();
+  const diagError = nativeRequest({ command: "translate", diagnostics: true });
+  failedWithMeta.send({ v: 1, type: "error", code: "http_auth", meta: { httpStatus: 401, model: "gpt-4o-mini" } });
+  await assert.rejects(diagError, err => err.message === "http_auth" && err.meta?.httpStatus === 401);
 });

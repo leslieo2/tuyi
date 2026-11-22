@@ -198,3 +198,68 @@ button:disabled { opacity: .45; cursor: default; }
 .form select, .form input { width: 100%; padding: 7px 10px; min-height: 34px; }
 .form label { font-weight: 600; font-size: 13px; margin-top: 4px; }
 .form .actions { margin-top: 8px; }
+
+.diagnostics {
+  padding: 8px 12px;
+}
+
+.diagnostics-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+  list-style: none;
+}
+
+.diagnostics-head::-webkit-details-marker { display: none; }
+
+.diagnostics-head::before {
+  content: "▸";
+  font-size: 11px;
+  margin-right: 4px;
+  transition: transform .15s ease;
+}
+
+.diagnostics[open] .diagnostics-head::before {
+  transform: rotate(90deg);
+}
+
+#diagnostics-summary {
+  margin-left: auto;
+  font-weight: 400;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.diagnostics-body {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.diagnostics-body button {
+  padding: 3px 10px;
+  min-height: 26px;
+  font-size: 12px;
+}
+
+#diagnostics-output {
+  margin: 0;
+  padding: 8px 10px;
+  max-height: 220px;
+  overflow: auto;
+  font: 11.5px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
+  background: var(--input);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}

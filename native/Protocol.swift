@@ -21,6 +21,35 @@ struct Request: Decodable {
     let model: String?
     let cloudConsent: Int?
     let apiKey: String?
+    let diagnostics: Bool?
+}
+
+struct DiagnosticsMeta: Encodable {
+    var durationMs: Int? = nil
+    var ocrLanguage: String? = nil
+    var imageWidth: Int? = nil
+    var imageHeight: Int? = nil
+    var imageBytes: Int? = nil
+    var lineCount: Int? = nil
+    var charCount: Int? = nil
+    var route: String? = nil
+    var target: String? = nil
+    var targetLabel: String? = nil
+    var detectedLanguage: String? = nil
+    var detectedConfidence: Double? = nil
+    var secondLanguage: String? = nil
+    var secondConfidence: Double? = nil
+    var nonTargetLineLanguage: String? = nil
+    var skipReason: String? = nil
+    var endpoint: String? = nil
+    var model: String? = nil
+    var httpStatus: Int? = nil
+    var streamed: Bool? = nil
+    var finishReason: String? = nil
+    var chunkCount: Int? = nil
+    var outputChars: Int? = nil
+    var thinkingDisabled: Bool? = nil
+    var systemPrompt: String? = nil
 }
 
 struct Reply: Encodable {
@@ -31,11 +60,16 @@ struct Reply: Encodable {
     var languages: [String]? = nil
     var configured: Bool? = nil
     var ok: Bool? = nil
+    var meta: DiagnosticsMeta? = nil
 }
 
 struct HostError: Error {
     let code: String
-    init(_ code: String) { self.code = code }
+    let meta: DiagnosticsMeta?
+    init(_ code: String, meta: DiagnosticsMeta? = nil) {
+        self.code = code
+        self.meta = meta
+    }
 }
 
 func readExactly(_ count: Int) throws -> Data {

@@ -24,6 +24,16 @@
   "btnTranslateText": { "message": "翻译识别文字" },
   "btnClear": { "message": "清除" },
 
+  "labelDiagnostics": { "message": "诊断信息" },
+  "btnCopyDiagnostics": { "message": "复制诊断信息" },
+  "diagnosticsEmpty": { "message": "当前会话尚无运行记录。" },
+  "diagnosticsPrivacyNote": { "message": "仅保留当前会话元数据，不含图片、文字或密钥。" },
+  "diagRouteApi": { "message": "API" },
+  "diagRouteLocalSkip": { "message": "本机跳过" },
+  "diagRouteCache": { "message": "缓存" },
+  "diagRouteOcrOnly": { "message": "仅识别" },
+  "diagUnchanged": { "message": "未变化" },
+
   "routeOnlyOcrReselect": { "message": "仅识别 · 请在设置中重新选择处理方式" },
   "routeTranslateTo": { "message": "默认译为$1" },
   "routeOnlyOcr": { "message": "仅识别" },

@@ -35,8 +35,10 @@ struct ImageTranslatorHost {
         // Kill a stalled read, OCR or network operation even if the browser disappears.
         alarm(150)
         signal(SIGPIPE, SIG_IGN)
+        var diagnosticsEnabled = false
         do {
             let request = try readRequest()
+            diagnosticsEnabled = request.diagnostics == true
             // Chrome closes stdin when the port disconnects. Each host handles one job.
             DispatchQueue.global().async {
                 var extra: UInt8 = 0
@@ -56,11 +58,11 @@ struct ImageTranslatorHost {
                 guard let image = request.image, let language = request.language else {
                     throw HostError("invalid_request")
                 }
-                let text = try recognize(image: image, language: language)
-                try send(Reply(type: "ocr", text: text))
+                let result = try recognize(image: image, language: language)
+                try send(Reply(type: "ocr", text: result.text, meta: diagnosticsEnabled ? result.meta : nil))
             case "translate":
-                try await translate(request) { try send(Reply(type: "delta", text: $0)) }
-                try send(Reply(type: "done"))
+                let meta = try await translate(request) { try send(Reply(type: "delta", text: $0)) }
+                try send(Reply(type: "done", meta: diagnosticsEnabled ? meta : nil))
             case "test_connection":
                 try await testConnection(request)
                 try send(Reply(type: "test_connection", ok: true))
@@ -68,7 +70,12 @@ struct ImageTranslatorHost {
                 throw HostError("invalid_request")
             }
         } catch {
-            try? send(Reply(type: "error", code: (error as? HostError)?.code ?? "native_failed"))
+            let hostError = error as? HostError
+            try? send(Reply(
+                type: "error",
+                code: hostError?.code ?? "native_failed",
+                meta: diagnosticsEnabled ? hostError?.meta : nil
+            ))
         }
     }
 }

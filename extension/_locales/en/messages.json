@@ -24,6 +24,16 @@
   "btnTranslateText": { "message": "Translate Text" },
   "btnClear": { "message": "Clear" },
 
+  "labelDiagnostics": { "message": "Diagnostics" },
+  "btnCopyDiagnostics": { "message": "Copy Diagnostics" },
+  "diagnosticsEmpty": { "message": "No runs yet in this session." },
+  "diagnosticsPrivacyNote": { "message": "Session metadata only. Never stores images, text, or keys." },
+  "diagRouteApi": { "message": "API" },
+  "diagRouteLocalSkip": { "message": "Local skip" },
+  "diagRouteCache": { "message": "Cache" },
+  "diagRouteOcrOnly": { "message": "OCR" },
+  "diagUnchanged": { "message": "Unchanged" },
+
   "routeOnlyOcrReselect": { "message": "OCR only · Please re-select mode in Settings" },
   "routeTranslateTo": { "message": "Translate to $1" },
   "routeOnlyOcr": { "message": "OCR only" },

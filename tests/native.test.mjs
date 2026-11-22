@@ -190,6 +190,71 @@ test("skips cloud translation when source text is already in the target language
   ]);
 });
 
+test("Vietnamese and mixed Chinese+Vietnamese text route to translation with explicit source/target prompt and diagnostics", async () => {
+  const received = [];
+  let trial = 0;
+  const service = await loopback(async (req, res) => {
+    received.push(await body(req));
+    trial++;
+    if (trial === 4) {
+      res.writeHead(401).end();
+      return;
+    }
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ choices: [{ message: { content: "译文结果" }, finish_reason: "stop" }] }));
+  });
+  try {
+    const vi = await ask({
+      command: "translate", cloudConsent: 1, target: "zh-Hans", diagnostics: true,
+      text: "Xin chào thế giới! Hôm nay trời rất đẹp."
+    }, { port: service.port });
+    assert.equal(vi[1].type, "done");
+    assert.equal(vi[1].meta.route, "api");
+    assert.equal(vi[1].meta.detectedLanguage, "vi");
+    assert.equal(vi[1].meta.targetLabel, "Simplified Chinese (zh-Hans)");
+    assert.equal(vi[1].meta.httpStatus, 200);
+    assert.equal(vi[1].meta.finishReason, "stop");
+    assert.match(received[0].messages[0].content, /Vietnamese \(vi\)/);
+    assert.match(received[0].messages[0].content, /Simplified Chinese \(zh-Hans\)/);
+    assert.doesNotMatch(received[0].messages[0].content, /BCP 47/);
+
+    const mixedLine = await ask({
+      command: "translate", cloudConsent: 1, target: "zh-Hans", diagnostics: true,
+      text: "返回 分享 更多 评论 点赞 收藏 转发 关注作者\nCảm ơn bạn rất nhiều"
+    }, { port: service.port });
+    assert.equal(mixedLine[1].meta.route, "api");
+    assert.equal(mixedLine[1].meta.skipReason, "mixed_language_line");
+    assert.equal(mixedLine[1].meta.nonTargetLineLanguage, "vi");
+
+    const mixedInline = await ask({
+      command: "translate", cloudConsent: 1, target: "zh-Hans", diagnostics: true,
+      text: "这个词怎么翻译：Xin chào"
+    }, { port: service.port });
+    assert.equal(mixedInline[1].meta.route, "api");
+    assert.equal(mixedInline[1].meta.skipReason, "mixed_language_segment");
+
+    const localSkip = await ask({
+      command: "translate", cloudConsent: 1, target: "zh-Hans", diagnostics: true,
+      text: "今天天气真好，我们一起去公园散步吧。"
+    }, { port: service.port });
+    assert.equal(localSkip[1].meta.route, "local_skip");
+    assert.equal(localSkip[1].meta.skipReason, "matched_target");
+
+    const failed = await ask({
+      command: "translate", cloudConsent: 1, target: "zh-Hans", diagnostics: true,
+      apiBaseUrl: "https://api.openai.com/v1", model: "gpt-4o-mini",
+      text: "Xin chào các bạn"
+    }, { port: service.port });
+    assert.equal(failed[0].type, "error");
+    assert.equal(failed[0].code, "http_auth");
+    assert.equal(failed[0].meta.httpStatus, 401);
+    assert.equal(failed[0].meta.model, "gpt-4o-mini");
+    assert.equal(failed[0].meta.endpoint, "https://api.openai.com/v1/chat/completions");
+  } finally {
+    await service.close();
+  }
+});
+
 test("loopback SSE, retry after HTTP error, JSON, no redirects and interrupted stream", async () => {
   let trial = 0;
   const requests = [];

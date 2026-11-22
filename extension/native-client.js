@@ -52,7 +52,9 @@ export function nativeRequest(request, { signal, onDelta = () => {} } = {}) {
         return;
       }
       if (message.type === "error" && typeof message.code === "string") {
-        finish(new Error(message.code));
+        const error = new Error(message.code);
+        if (message.meta && typeof message.meta === "object") error.meta = message.meta;
+        finish(error);
       } else if (message.type === "delta" && command === "translate" && typeof message.text === "string") {
         outputBytes += encoder.encode(message.text).byteLength;
         if (outputBytes > MAX_TRANSLATION_BYTES) finish(new Error("output_limit"));
