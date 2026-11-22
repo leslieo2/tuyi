@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/leslieo2/tuyi/compare/v1.2.0...v1.3.0) (2026-11-22)
+
+
+### Features
+
+* add Clear Cache button in Settings ([6af4c51](https://github.com/leslieo2/tuyi/commit/6af4c51b92287e8d340a1532b846f77f7dc1cecb))
+
 # [1.2.0](https://github.com/leslieo2/tuyi/compare/v1.1.0...v1.2.0) (2026-11-20)
 
 
