@@ -1,3 +1,13 @@
+# [2.0.0](https://github.com/leslieo2/tuyi/compare/v1.4.2...v2.0.0) (2026-11-23)
+
+
+* feat!: group OCR text by layout ([0ad1903](https://github.com/leslieo2/tuyi/commit/0ad19031432911cdd19251587c2bc8c9c18b1d0e))
+
+
+### BREAKING CHANGES
+
+* Tuyi now requires macOS 26 or later.
+
 ## [1.4.2](https://github.com/leslieo2/tuyi/compare/v1.4.1...v1.4.2) (2026-11-22)
 
 
