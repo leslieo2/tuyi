@@ -28,6 +28,11 @@ export function updateCaskSource(source, version, sha256) {
 
   let updated = replaceSingleLineField(source, "version", version);
   updated = replaceSingleLineField(updated, "sha256", sha256);
+  const macOSDependency = /^([ \t]*depends_on[ \t]+macos:[ \t]*):\w+[ \t]*$/gm;
+  if ([...updated.matchAll(macOSDependency)].length !== 1) {
+    throw new Error('Expected exactly 1 "depends_on macos:" field in cask');
+  }
+  updated = updated.replace(macOSDependency, "$1:tahoe");
   return { updated, changed: updated !== source };
 }
 

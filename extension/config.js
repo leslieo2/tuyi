@@ -93,7 +93,7 @@ export function normalizeSettings(input = {}) {
   };
 }
 
-export function translationRequest(settings, text) {
+export function translationRequest(settings, text, sourceLines) {
   // The menu or panel click authorizes this request only.
   if (settings.mode !== "translate") throw new Error("cloud_consent");
   return {
@@ -103,6 +103,7 @@ export function translationRequest(settings, text) {
     model: settings.model,
     cloudConsent: 1,
     text,
+    ...(sourceLines && { sourceLines }),
   };
 }
 

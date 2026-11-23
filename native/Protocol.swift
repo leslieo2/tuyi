@@ -16,6 +16,7 @@ struct Request: Decodable {
     let image: String?
     let language: String?
     let text: String?
+    let sourceLines: [String]?
     let target: String?
     let apiBaseUrl: String?
     let model: String?
@@ -57,6 +58,7 @@ struct Reply: Encodable {
     let type: String
     var code: String? = nil
     var text: String? = nil
+    var sourceLines: [String]? = nil
     var languages: [String]? = nil
     var configured: Bool? = nil
     var ok: Bool? = nil

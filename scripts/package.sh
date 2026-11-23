@@ -15,8 +15,8 @@ arm64_bin="$root/.build/image-translator-host-arm64"
 x86_bin="$root/.build/image-translator-host-x86_64"
 trap 'rm -f -- "$arm64_bin" "$x86_bin"' EXIT
 
-xcrun swiftc -O -target arm64-apple-macos13.0 -o "$arm64_bin" "$root"/native/*.swift
-xcrun swiftc -O -target x86_64-apple-macos13.0 -o "$x86_bin" "$root"/native/*.swift
+xcrun swiftc -O -target arm64-apple-macos26.0 -o "$arm64_bin" "$root"/native/*.swift
+xcrun swiftc -O -target x86_64-apple-macos26.0 -o "$x86_bin" "$root"/native/*.swift
 lipo -create -output "$stage_dir/bin/image-translator-host" "$arm64_bin" "$x86_bin"
 chmod 755 "$stage_dir/bin/image-translator-host"
 codesign --force --sign - "$stage_dir/bin/image-translator-host" >/dev/null 2>&1 || true

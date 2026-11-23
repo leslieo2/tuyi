@@ -58,8 +58,12 @@ struct ImageTranslatorHost {
                 guard let image = request.image, let language = request.language else {
                     throw HostError("invalid_request")
                 }
-                let result = try recognize(image: image, language: language)
-                try send(Reply(type: "ocr", text: result.text, meta: diagnosticsEnabled ? result.meta : nil))
+                let result = try await recognize(image: image, language: language)
+                try send(
+                    Reply(
+                        type: "ocr", text: result.text, sourceLines: result.sourceLines,
+                        meta: diagnosticsEnabled ? result.meta : nil
+                    ))
             case "translate":
                 let meta = try await translate(request) { try send(Reply(type: "delta", text: $0)) }
                 try send(Reply(type: "done", meta: diagnosticsEnabled ? meta : nil))

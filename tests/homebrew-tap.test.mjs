@@ -13,6 +13,7 @@ const SAMPLE_CASK = `cask "tuyi" do
   url "https://github.com/leslieo2/tuyi/releases/download/v#{version}/tuyi-v#{version}-macos.zip"
   name "Tuyi"
 
+  depends_on macos: :ventura
   postflight_steps do
     copy "tuyi-v{{version}}-macos/extension", "target"
   end
@@ -21,11 +22,12 @@ end
 
 const SAMPLE_SHA = "a".repeat(64);
 
-test("updateCaskSource replaces version and sha256 without altering interpolations", () => {
+test("updateCaskSource updates the release fields and requires macOS Tahoe", () => {
   const { updated, changed } = updateCaskSource(SAMPLE_CASK, "1.5.0", SAMPLE_SHA);
   assert.equal(changed, true);
   assert.match(updated, /^ {2}version "1\.5\.0"$/m);
   assert.match(updated, new RegExp(`^ {2}sha256 "${SAMPLE_SHA}"$`, "m"));
+  assert.match(updated, /^ {2}depends_on macos: :tahoe$/m);
   assert.match(updated, /v#\{version\}\/tuyi-v#\{version\}-macos\.zip/);
   assert.match(updated, /tuyi-v\{\{version\}\}-macos\/extension/);
 
@@ -100,6 +102,7 @@ test("updateHomebrewTap fetches current cask, computes zip sha256, and commits u
     const decodedCask = Buffer.from(putBody.content, "base64").toString("utf8");
     assert.match(decodedCask, /^ {2}version "1\.5\.0"$/m);
     assert.match(decodedCask, new RegExp(`^ {2}sha256 "${expectedSha}"$`, "m"));
+    assert.match(decodedCask, /^ {2}depends_on macos: :tahoe$/m);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

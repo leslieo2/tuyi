@@ -3,8 +3,12 @@ set -euo pipefail
 root="$(cd -- "$(dirname -- "$0")/.." && pwd)"
 source "$root/scripts/paths.sh"
 
-if [[ "$(uname -s)" != Darwin ]]; then
-  printf '%s\n' 'This extension only supports macOS 13+.' >&2
+os_version=0
+if [[ "$(uname -s)" == Darwin ]]; then
+  os_version="$(/usr/bin/sw_vers -productVersion)"
+fi
+if [[ "${os_version%%.*}" -lt 26 ]]; then
+  printf '%s\n' 'Tuyi requires macOS 26 or later.' >&2
   exit 1
 fi
 
@@ -44,7 +48,7 @@ if [[ -x "$prebuilt" && ! -d "$root/native" ]]; then
   extension_dir="$host_dir/extension"
 else
   if ! xcode-select -p >/dev/null 2>&1; then
-    printf '%s\n' 'macOS 13+ and Xcode Command Line Tools are required. Run: xcode-select --install' >&2
+    printf '%s\n' 'Xcode 26 or compatible Command Line Tools are required. Run: xcode-select --install' >&2
     exit 1
   fi
   host_source=("$root"/native/*.swift)

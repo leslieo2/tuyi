@@ -20,6 +20,7 @@ test(
     const testKey = "synthetic-browser-key";
     let requests = 0;
     let connectionClosed = false;
+    let translatedSource;
     const crossOrigin = await loopback((req, res) => {
       res.writeHead(200, { "Content-Type": "image/png" }).end(readFileSync(fixture("ja")));
     });
@@ -35,7 +36,8 @@ test(
         res.writeHead(200, { "Content-Type": "image/png" }).end(readFileSync(fixture("en")));
       } else if (req.url === "/chat/completions") {
         const input = await body(req);
-        assert.match(input.messages[1].content, /train leaves at seven/i);
+        translatedSource = input.messages[1].content;
+        assert.match(translatedSource, /train leaves (?:from the main station )?at seven/i);
         assert.match(input.messages[0].content, /zh-Hans/);
         assert.equal(input.model, "deepseek-flash");
         assert.equal(req.headers.authorization, `Bearer ${testKey}`);
@@ -271,13 +273,42 @@ test(
       "real blank image OCR via file upload",
     );
 
-    await panel.invoke("DOM.setFileInputFiles", { nodeId, files: [fixture("en")] });
+    const upload = { nodeId, files: [fixture("layout")] };
+    await panel.invoke("DOM.setFileInputFiles", upload);
     await waitFor(() => panel.eval(`${$status} === "识别完成。"`), "text upload stays local");
+    const grouped = await panel.eval($original);
+    assert.match(
+      grouped,
+      /VISITORS\n\nThe train leaves from the main station at seven every morning\.?\n\nBring your ticket/i,
+    );
+    await click("#clear");
+    await panel.invoke("DOM.setFileInputFiles", upload);
+    await waitFor(() => panel.eval(`${$status} === "识别完成。"`), "cached upload recognition");
+    const ocrDiagnostics = await panel.eval(
+      'JSON.parse(document.querySelector("#diagnostics-output").textContent).ocr',
+    );
+    assert.equal(ocrDiagnostics.cacheHit, true);
+    assert.equal(await panel.eval($original), grouped);
     assert.equal(requests, 3);
     assert.equal(await panel.eval($translation), "");
+    await panel.eval(`(() => {
+      const connect = chrome.runtime.connectNative;
+      chrome.runtime.connectNative = (...args) => {
+        chrome.runtime.connectNative = connect;
+        const port = connect.call(chrome.runtime, ...args);
+        const post = port.postMessage.bind(port);
+        port.postMessage = (message) => {
+          globalThis.testSourceLines = message.sourceLines;
+          post(message);
+        };
+        return port;
+      };
+    })()`);
     await click("#retry");
     await waitFor(() => panel.eval(`${$status} === "翻译完成。"`), "explicit upload translation");
     assert.equal(requests, 4);
+    assert.equal(translatedSource, grouped);
+    assert.match((await panel.eval("testSourceLines"))[2], /^station at seven/i);
 
     const japaneseImage = JSON.stringify(readFileSync(fixture("ja")).toString("base64"));
     await panel.eval(`(() => {

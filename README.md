@@ -3,12 +3,13 @@
 A privacy-first Chrome extension for **macOS** that recognizes text inside images locally on your Mac and translates it in Chrome's Side Panel.
 
 > **macOS Only**
-> This extension **only works on macOS 13.0 (Ventura) or newer** (Apple Silicon and Intel) with **Google Chrome 123+**. It does **not** support Windows or Linux because text recognition, language detection, and API key storage run natively via macOS system frameworks.
+> Tuyi requires **macOS 26 (Tahoe) or later** on Apple Silicon or Intel and **Google Chrome 123+**.
 
 ## Features
 
 - **Right-click any webpage image**: Select **Translate Text in Image** to extract text locally and stream the translation into the Side Panel.
 - **Upload, drag & drop, or paste screenshots**: Drop an image onto the panel, pick a file, click **Paste Image**, or paste a macOS screenshot (`⌃⇧⌘4` + `⌘V`).
+- **Layout-aware text recognition** groups wrapped lines into paragraphs and reads columns and vertical Chinese and Japanese in reading order.
 - **OCR-only mode**: Extract text completely offline without sending anything off your Mac.
 - **Smart same-language detection**: Automatically skips external translation when the recognized text already matches your target language.
 - **Flexible translation service**: Works out of the box with DeepSeek, and supports any OpenAI-compatible service (OpenAI, OpenRouter, or local servers like Ollama / LM Studio).

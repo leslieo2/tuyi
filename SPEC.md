@@ -29,4 +29,4 @@ In Google Chrome on macOS, when a user sees an image containing foreign-language
 
 ## Scope
 
-The product output is plain-text Original and Translation in the Side Panel. OCR quality depends on font size, image clarity, language, and layout; reading order for complex layouts follows Apple Vision's output. Input formats and resource limits are documented in [IMPLEMENTATION.md](IMPLEMENTATION.md).
+The Side Panel shows plain-text Original and Translation. Original joins wrapped lines into paragraphs and separates blocks with blank lines. Text is read in column order, with vertical Chinese and Japanese read top to bottom within each column and right to left across columns. Translation uses the same grouped text. Recognition quality and reading order depend on font size, image clarity, language, and layout. Input formats and limits are documented in [IMPLEMENTATION.md](IMPLEMENTATION.md).

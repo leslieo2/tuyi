@@ -4,7 +4,7 @@ Thanks for your interest in contributing to **Tuyi**!
 
 ## Environment
 
-- **macOS 13.0+** with **Xcode Command Line Tools** (`xcode-select --install`)
+- **macOS 26+** with **Xcode 26** or compatible **Command Line Tools** (`xcode-select --install`)
 - **Google Chrome 123+**
 - **Node.js 20+** (for linting, formatting, and running the test suite)
 - **ShellCheck** (`brew install shellcheck`, optional locally, enforced in CI for `scripts/*.sh`)
@@ -65,10 +65,10 @@ This repository uses [semantic-release](https://github.com/semantic-release/sema
 
 - `fix: ...` → patch release (`1.0.x`)
 - `feat: ...` → minor release (`1.x.0`)
-- `BREAKING CHANGE:` / `feat!: ...` → major release (`x.0.0`)
+- `BREAKING CHANGE:` / `feat!: ...` → major release (`x.0.0`), including changes that drop support for older macOS versions
 - `docs:`, `chore:`, `test:`, `refactor:` → no new release
 
-`semantic-release` updates `package.json`, `extension/manifest.json`, and `CHANGELOG.md` automatically, attaches `tuyi-v*-macos.zip` to the GitHub Release, and runs `scripts/update-homebrew-tap.mjs` to update `Casks/tuyi.rb` in [`leslieo2/homebrew-tap`](https://github.com/leslieo2/homebrew-tap) with the new version and SHA-256. This automated tap update requires a `HOMEBREW_TAP_TOKEN` repository secret in `leslieo2/tuyi` with `Contents: Read and write` permission on `leslieo2/homebrew-tap` (otherwise the step logs a warning and the cask must be updated manually).
+`semantic-release` updates `package.json`, `extension/manifest.json`, and `CHANGELOG.md` automatically and attaches `tuyi-v*-macos.zip` to the GitHub Release. The release runs `scripts/update-homebrew-tap.mjs` to update the version, SHA-256, and macOS dependency of the [Tuyi cask](https://github.com/leslieo2/homebrew-tap). This automated tap update requires a `HOMEBREW_TAP_TOKEN` repository secret in `leslieo2/tuyi` with `Contents: Read and write` permission on `leslieo2/homebrew-tap` (otherwise the step logs a warning and the cask must be updated manually).
 
 ## Guidelines
 

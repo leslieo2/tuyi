@@ -20,6 +20,12 @@ let active;
 let pendingPaste;
 let panelPort;
 let preferences;
+let originalSourceLines;
+
+function setOriginal(text, sourceLines) {
+  original.value = text;
+  originalSourceLines = sourceLines;
+}
 
 function status(text, state = "idle") {
   byId("status").textContent = text;
@@ -123,7 +129,9 @@ async function translate(settings, signal, job, { useCache = false } = {}) {
   job.stage = "translate";
   const startedMs = performance.now();
   const source = original.value;
-  const cacheKey = `tr:${settings.apiBaseUrl}:${settings.model}:${settings.target}:${await sha256(source)}`;
+  const sourceLines = originalSourceLines;
+  const sourceHash = await sha256(JSON.stringify([source, sourceLines]));
+  const cacheKey = `tr:${settings.apiBaseUrl}:${settings.model}:${settings.target}:${sourceHash}`;
   signal.throwIfAborted();
   if (useCache) {
     const cached = await translationCache.get(cacheKey);
@@ -147,7 +155,7 @@ async function translate(settings, signal, job, { useCache = false } = {}) {
   }
   status(t("statusTranslating"), "busy");
   const reply = await nativeRequest(
-    { ...translationRequest(settings, source), diagnostics: true },
+    { ...translationRequest(settings, source, sourceLines), diagnostics: true },
     {
       signal,
       onDelta: (text) => {
@@ -182,19 +190,25 @@ async function recognizeImage(acquire, language, signal, job) {
 
   job.stage = "ocr";
   const ocrStart = performance.now();
-  const cacheKey = `ocr:${language}:${await sha256(image)}`;
+  const cacheKey = `ocr:v2:${language}:${await sha256(image)}`;
   signal.throwIfAborted();
   const cached = await ocrCache.get(cacheKey);
   signal.throwIfAborted();
-  if (typeof cached === "string") {
+  let cachedResult;
+  try {
+    if (cached !== undefined) cachedResult = JSON.parse(cached);
+  } catch {
+    // Treat an unreadable session cache entry as a miss.
+  }
+  if (typeof cachedResult?.text === "string") {
     diagnostics.recordOcr(job.run, {
       cacheHit: true,
       language,
-      charCount: cached.length,
+      charCount: cachedResult.text.length,
       durationMs: Math.round(performance.now() - ocrStart),
     });
     renderDiagnostics();
-    return { text: cached };
+    return cachedResult;
   }
   status(t("statusRecognizing"), "busy");
   const result = await nativeRequest(
@@ -208,20 +222,22 @@ async function recognizeImage(acquire, language, signal, job) {
     ...(result?.meta ?? {}),
   });
   renderDiagnostics();
-  await ocrCache.set(cacheKey, result.text);
-  return result;
+  const { text, sourceLines } = result;
+  const recognized = { text, sourceLines };
+  await ocrCache.set(cacheKey, JSON.stringify(recognized));
+  return recognized;
 }
 
 function processImage(acquire, { translateAfterRecognition = false, trigger = "upload" } = {}) {
-  original.value = "";
+  setOriginal("");
   translation.value = "";
   start(
     async (settings, signal, job) => {
       const result = recognizeImage(acquire, settings.ocrLanguage, signal, job);
       acquire = undefined;
-      const { text } = await result;
+      const { text, sourceLines } = await result;
       signal.throwIfAborted();
-      original.value = text;
+      setOriginal(text, sourceLines);
       refreshButtons();
       if (!text) {
         job.outcome = "empty";
@@ -256,7 +272,7 @@ async function connectPanel() {
       });
     } else if (message.type === "image-error") {
       stop();
-      original.value = "";
+      setOriginal("");
       translation.value = "";
       const run = diagnostics.startRun({ trigger: "context-menu", settings: preferences });
       diagnostics.finishRun(run, "error", { code: message.code, stage: "image" });
@@ -357,7 +373,7 @@ byId("cancel").onclick = () => {
 };
 byId("clear").onclick = () => {
   stop();
-  original.value = "";
+  setOriginal("");
   translation.value = "";
   fileInput.value = "";
   diagnostics.clear();

@@ -2,13 +2,21 @@ import Foundation
 import ImageIO
 import Vision
 
-func visionLanguages() throws -> [String] {
+private func visionLanguages(for documentRequest: RecognizeDocumentsRequest) throws -> [String] {
     let request = VNRecognizeTextRequest()
     request.recognitionLevel = .accurate
-    return try request.supportedRecognitionLanguages()
+    let supported = Set(documentRequest.supportedRecognitionLanguages)
+    // Keep the language tags already used in saved settings and native messages.
+    return try request.supportedRecognitionLanguages().filter { supported.contains(Locale.Language(identifier: $0)) }
 }
 
-func recognize(image encoded: String, language: String) throws -> (text: String, meta: DiagnosticsMeta) {
+func visionLanguages() throws -> [String] {
+    try visionLanguages(for: RecognizeDocumentsRequest())
+}
+
+func recognize(image encoded: String, language: String) async throws -> (
+    text: String, sourceLines: [String]?, meta: DiagnosticsMeta
+) {
     let startedAt = DispatchTime.now().uptimeNanoseconds
     var meta = DiagnosticsMeta(ocrLanguage: language)
     guard encoded.utf8.count <= ((Limits.imageBytes + 2) / 3) * 4 else {
@@ -38,15 +46,15 @@ func recognize(image encoded: String, language: String) throws -> (text: String,
         width * height <= Limits.imagePixels
     else { throw HostError("image_dimensions", meta: meta) }
 
-    let request = VNRecognizeTextRequest()
-    request.recognitionLevel = .accurate
-    request.usesLanguageCorrection = true
-    request.automaticallyDetectsLanguage = language == "auto"
+    var request = RecognizeDocumentsRequest()
+    request.barcodeDetectionOptions.enabled = false
+    request.textRecognitionOptions.useLanguageCorrection = true
+    request.textRecognitionOptions.automaticallyDetectLanguage = language == "auto"
     if language != "auto" {
-        guard try request.supportedRecognitionLanguages().contains(language) else {
+        guard try visionLanguages(for: request).contains(language) else {
             throw HostError("ocr_language", meta: meta)
         }
-        request.recognitionLanguages = [language]
+        request.textRecognitionOptions.recognitionLanguages = [Locale.Language(identifier: language)]
     }
 
     let options: [CFString: Any] = [
@@ -58,31 +66,39 @@ func recognize(image encoded: String, language: String) throws -> (text: String,
     guard let image = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary) else {
         throw HostError("invalid_image", meta: meta)
     }
+    let documents: [DocumentObservation]
     do {
-        try VNImageRequestHandler(cgImage: image).perform([request])
+        documents = try await request.perform(on: image)
     } catch {
         meta.durationMs = Int((DispatchTime.now().uptimeNanoseconds - startedAt) / 1_000_000)
         throw HostError("ocr_failed", meta: meta)
     }
 
-    var text = ""
-    var lineCount = 0
-    for observation in request.results ?? [] {
-        guard let line = observation.topCandidates(1).first?.string.trimmingCharacters(in: .whitespacesAndNewlines),
-            !line.isEmpty
-        else { continue }
-        let separator = text.isEmpty ? "" : "\n"
-        guard text.utf8.count + separator.utf8.count + line.utf8.count <= Limits.sourceBytes else {
-            meta.lineCount = lineCount
-            meta.charCount = text.count
-            meta.durationMs = Int((DispatchTime.now().uptimeNanoseconds - startedAt) / 1_000_000)
-            throw HostError("source_limit", meta: meta)
+    let imageSize = CGSize(width: image.width, height: image.height)
+    let lines = documents.map { document in
+        document.document.text.lines.map { observation in
+            let direction: OCRLine.Direction? =
+                switch observation.textDirection {
+                case .leftToRight: .leftToRight
+                case .rightToLeft: .rightToLeft
+                case .topToBottom: .topToBottom
+                default: nil
+                }
+            return OCRLine(
+                text: observation.transcript.trimmingCharacters(in: .whitespacesAndNewlines),
+                bounds: observation.boundingBox.toImageCoordinates(imageSize),
+                direction: direction,
+                wraps: observation.shouldWrapToNextLine == true,
+                isTitle: observation.isTitle
+            )
         }
-        text += separator + line
-        lineCount += 1
     }
-    meta.lineCount = lineCount
-    meta.charCount = text.count
-    meta.durationMs = Int((DispatchTime.now().uptimeNanoseconds - startedAt) / 1_000_000)
-    return (text, meta)
+    do {
+        let formatted = try formatOCR(lines, meta: &meta)
+        meta.durationMs = Int((DispatchTime.now().uptimeNanoseconds - startedAt) / 1_000_000)
+        return (formatted.text, formatted.sourceLines, meta)
+    } catch let error as HostError {
+        meta.durationMs = Int((DispatchTime.now().uptimeNanoseconds - startedAt) / 1_000_000)
+        throw HostError(error.code, meta: meta)
+    }
 }

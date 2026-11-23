@@ -4,10 +4,10 @@ Guidance for AI coding agents working in this repository.
 
 ## Overview
 
-**Tuyi** (`tuyi`) is a macOS-only (`13.0+`) Chrome Manifest V3 extension paired with a Swift Native Messaging host:
+**Tuyi** (`tuyi`) is a macOS-only (`26.0+`) Chrome Manifest V3 extension paired with a Swift Native Messaging host:
 
 - `extension/` — Plain ES modules (no bundler, no runtime npm dependencies), Side Panel & Options UI, `_locales` (`en`, `zh_CN`), content script (`image-selection.js`), and session-only cache (`cache.js`).
-- `native/` — Swift native host (`Host.swift`, `Protocol.swift`, `VisionOCR.swift`, `Translation.swift`, `Keychain.swift`, `Identity.swift`) compiled with `xcrun swiftc`.
+- `native/` — Swift native host (`Host.swift`, `Protocol.swift`, `VisionOCR.swift`, `OCRLayout.swift`, `Translation.swift`, `Keychain.swift`, `Identity.swift`) compiled with `xcrun swiftc`.
 - `scripts/` — Build, install, Keychain helper, universal release packaging, test, and uninstall scripts.
 - `tests/` — Node test runner suites (`config`, `native-client`, `cache`, `i18n`, `native`, `chrome`, `chrome-menu`).
 
